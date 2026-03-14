@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Key, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -50,6 +50,70 @@ export default function ResetPasswordPage() {
   };
 
   return (
+    <div className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl">
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        {(error || message) && (
+          <div className={`p-4 rounded-2xl text-[10px] font-black border flex items-center gap-3 animate-shake ${error ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
+            <Terminal className="w-4 h-4 shrink-0" />
+            {error || message}
+          </div>
+        )}
+        
+        <div className="space-y-4">
+          <div className="group">
+            <div className="relative">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
+                <Lock className="w-4 h-4" />
+              </div>
+              <input
+                type="password"
+                required
+                className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                placeholder="New access key"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="group">
+            <div className="relative">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <input
+                type="password"
+                required
+                className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                placeholder="Confirm access key"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || !token}
+          className="w-full py-4 bg-primary text-white font-black rounded-2xl hover:bg-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px] group"
+        >
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              Protocol Update
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 font-sans relative overflow-hidden">
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]" />
@@ -67,65 +131,9 @@ export default function ResetPasswordPage() {
           <p className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] mt-2">Provision new access protocol</p>
         </div>
 
-        <div className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {(error || message) && (
-              <div className={`p-4 rounded-2xl text-[10px] font-black border flex items-center gap-3 animate-shake ${error ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
-                <Terminal className="w-4 h-4 shrink-0" />
-                {error || message}
-              </div>
-            )}
-            
-            <div className="space-y-4">
-              <div className="group">
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
-                    placeholder="New access key"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="group">
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
-                    placeholder="Confirm access key"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !token}
-              className="w-full py-4 bg-primary text-white font-black rounded-2xl hover:bg-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px] group"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Protocol Update
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+        <Suspense fallback={<div className="text-center text-slate-500">Loading secure protocol...</div>}>
+          <ResetPasswordForm />
+        </Suspense>
       </div>
     </div>
   );
