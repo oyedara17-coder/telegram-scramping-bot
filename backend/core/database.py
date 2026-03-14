@@ -5,9 +5,12 @@ from .config import get_settings
 
 settings = get_settings()
 
+# Check if using libSQL
+is_libsql = "libsql" in settings.DATABASE_URL
+
 engine = create_engine(
     settings.DATABASE_URL, 
-    connect_args={"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") and "libsql" not in settings.DATABASE_URL else {}
+    connect_args={"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") and not is_libsql else {}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
