@@ -14,6 +14,7 @@ class TelegramService:
         self.api_id = settings.TELEGRAM_API_ID
         self.api_hash = settings.TELEGRAM_API_HASH
         self.clients = {} # phone -> TelegramClient
+        self.auth_states = {} # phone -> {phone_code_hash: str, client: TelegramClient}
 
     async def get_client(self, phone: str, session_str: Optional[str] = None) -> TelegramClient:
         if phone in self.clients:
@@ -41,8 +42,10 @@ class TelegramService:
             user = await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
             session_str = client.session.save()
             return user, session_str
+        except errors.SessionPasswordNeededError:
+            # Note: 2FA not implemented in this flow for simplicity
+            raise Exception("2FA is enabled on this account. Please disable it to use this platform or wait for updates.")
         except Exception as e:
-            # Handle 2FA if needed
             raise e
 
     async def get_groups(self, phone: str):

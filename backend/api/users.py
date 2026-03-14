@@ -7,6 +7,7 @@ from datetime import timedelta
 from models import models
 from pydantic import BaseModel
 from typing import List, Optional
+from services.telegram_service import telegram_service
 
 router = APIRouter()
 
@@ -32,6 +33,14 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
+
+class TelegramLoginRequest(BaseModel):
+    phone: str
+
+class TelegramVerifyRequest(BaseModel):
+    phone: str
+    code: str
+    phone_code_hash: str
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     payload = decode_access_token(token)
@@ -112,6 +121,65 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+@router.post("/auth/telegram/send-code")
+async def send_telegram_code(request: TelegramLoginRequest):
+    try:
+        result = await telegram_service.send_code(request.phone)
+        return {"phone_code_hash": result.phone_code_hash}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+@router.post("/auth/telegram/verify", response_model=Token)
+async def verify_telegram_code(request: TelegramVerifyRequest, db: Session = Depends(get_db)):
+    try:
+        user_data, session_str = await telegram_service.sign_in(
+            request.phone, 
+            request.phone_code_hash, 
+            request.code
+        )
+        
+        # Find or create user
+        user = db.query(models.User).filter(models.User.telegram_id == user_data.id).first()
+        if not user:
+            # Check by phone as fallback
+            user = db.query(models.User).filter(models.User.phone == request.phone).first()
+            if not user:
+                user = models.User(
+                    telegram_id=user_data.id,
+                    phone=request.phone,
+                    username=user_data.username or f"user_{user_data.id}",
+                    role="user"
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            else:
+                user.telegram_id = user_data.id
+                db.commit()
+        
+        # Link Telegram Account session
+        account = db.query(models.Account).filter(models.Account.phone == request.phone).first()
+        if not account:
+            account = models.Account(
+                phone=request.phone,
+                api_id=settings.TELEGRAM_API_ID,
+                api_hash=settings.TELEGRAM_API_HASH,
+                session_name=session_str,
+                owner_id=user.id
+            )
+            db.add(account)
+        else:
+            account.session_name = session_str
+            account.owner_id = user.id
+        
+        db.commit()
+
+        access_token = create_access_token(data={"sub": user.username or str(user.telegram_id), "role": user.role})
+        return {"access_token": access_token, "token_type": "bearer", "role": user.role}
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.get("/me", response_model=UserOut)
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
