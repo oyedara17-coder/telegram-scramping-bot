@@ -14,3 +14,4 @@ python-dotenv
 alembic
 pytest
 httpx
+sqlalchemy-libsql
