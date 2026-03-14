@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShieldCheck, Zap, Lock, Eye, EyeOff, Terminal, ArrowRight, User, Key } from 'lucide-react';
 
 export default function PremiumLoginPage() {
@@ -23,7 +24,7 @@ export default function PremiumLoginPage() {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/users/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ username, password }),
@@ -46,7 +47,7 @@ export default function PremiumLoginPage() {
     setForgotLoading(true);
     setForgotMessage('');
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/users/forgot-password', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail }),
@@ -74,13 +75,13 @@ export default function PremiumLoginPage() {
         
         {/* Logo Section */}
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-primary/10 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 transform hover:rotate-12 transition-transform">
-            <Zap className="w-10 h-10 text-primary" />
+          <div className="w-24 h-24 bg-primary/10 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 transform hover:-rotate-12 transition-transform p-3">
+             <Image src="/logo.png" alt="Logo" width={96} height={96} className="w-full h-full object-contain drop-shadow-lg" />
           </div>
           <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase font-heading italic">
             Stepyzoid <span className="text-primary italic">Studio</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] mt-2">Elite Automation Node v2.0</p>
+          <p className="text-slate-600 dark:text-slate-300 font-extrabold text-[11px] uppercase tracking-[0.3em] mt-2">Elite Automation Node v2.0</p>
         </div>
 
         {/* Forgot Password Modal */}
@@ -148,7 +149,7 @@ export default function PremiumLoginPage() {
                     type="text"
                     required
                     autoFocus
-                    className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold placeholder:text-slate-500 dark:placeholder:text-slate-500"
                     placeholder="Email Address"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -165,7 +166,7 @@ export default function PremiumLoginPage() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    className="w-full pl-12 pr-12 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                    className="w-full pl-12 pr-12 py-4 bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold placeholder:text-slate-500 dark:placeholder:text-slate-500"
                     placeholder="Access protocol"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -197,16 +198,16 @@ export default function PremiumLoginPage() {
             </button>
             
             <div className="flex items-center justify-between px-2">
-               <Link href="/signup" className="text-[10px] text-slate-400 font-bold hover:text-primary transition-colors uppercase tracking-widest">
-                 Provision Node
-               </Link>
-               <button 
-                 type="button"
-                 onClick={() => setShowForgotModal(true)}
-                 className="text-[10px] text-slate-400 font-bold hover:text-primary transition-colors uppercase tracking-widest"
-               >
-                 Lost Access?
-               </button>
+                <Link href="/signup" className="text-[10px] text-slate-600 dark:text-slate-400 font-black hover:text-primary transition-colors uppercase tracking-widest">
+                  Provision Node
+                </Link>
+                <button 
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="text-[10px] text-slate-600 dark:text-slate-400 font-black hover:text-primary transition-colors uppercase tracking-widest"
+                >
+                  Lost Access?
+                </button>
             </div>
           </form>
         </div>

@@ -24,7 +24,7 @@ export default function ScraperPage() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/campaigns/templates', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/campaigns/templates', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -37,7 +37,7 @@ export default function ScraperPage() {
   const handleScrape = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/telegram/scrape_members', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/telegram/scrape_members', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ export default function ScraperPage() {
         const target = member.username || member.id;
         
         try {
-            await fetch('http://127.0.0.1:8000/api/telegram/send-message', {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/telegram/send-message', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

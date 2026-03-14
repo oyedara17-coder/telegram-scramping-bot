@@ -15,7 +15,7 @@ export default function TemplatesPage() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/campaigns/templates', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/campaigns/templates', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -26,7 +26,7 @@ export default function TemplatesPage() {
   const handleCreate = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/campaigns/templates', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/campaigns/templates', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

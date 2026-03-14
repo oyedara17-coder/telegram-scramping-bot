@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { Lock, Key, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
 
 function ResetPasswordForm() {
@@ -31,7 +32,7 @@ function ResetPasswordForm() {
     setError('');
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/users/reset-password', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, new_password: password }),
@@ -68,7 +69,7 @@ function ResetPasswordForm() {
               <input
                 type="password"
                 required
-                className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                className="w-full pl-12 pr-4 py-4 bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold placeholder:text-slate-500 dark:placeholder:text-slate-500"
                 placeholder="New access key"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -84,7 +85,7 @@ function ResetPasswordForm() {
               <input
                 type="password"
                 required
-                className="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-950/50 border border-transparent rounded-2xl text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                className="w-full pl-12 pr-4 py-4 bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold placeholder:text-slate-500 dark:placeholder:text-slate-500"
                 placeholder="Confirm access key"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -122,13 +123,13 @@ export default function ResetPasswordPage() {
 
       <div className="max-w-md w-full relative z-10">
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-primary/10 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-primary/20">
-            <Key className="w-10 h-10 text-primary" />
+          <div className="w-24 h-24 bg-primary/10 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 transform hover:-rotate-12 transition-transform p-3">
+             <Image src="/logo.png" alt="Logo" width={96} height={96} className="w-full h-full object-contain drop-shadow-lg" />
           </div>
           <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase font-heading italic">
             Security <span className="text-primary italic">Override</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] mt-2">Provision new access protocol</p>
+          <p className="text-slate-600 dark:text-slate-300 font-extrabold text-[11px] uppercase tracking-[0.3em] mt-2">Provision new access protocol</p>
         </div>
 
         <Suspense fallback={<div className="text-center text-slate-500">Loading secure protocol...</div>}>

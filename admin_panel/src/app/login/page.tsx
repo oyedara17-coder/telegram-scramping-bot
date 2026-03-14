@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
 
     try {
       // Admin login against the same backend
-      const response = await fetch('http://127.0.0.1:8000/api/users/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ username: username.toLowerCase().trim(), password }),
@@ -67,8 +67,8 @@ export default function AdminLoginPage() {
             Stepyzoid <span className="text-red-500">Studio Admin</span>
           </h1>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Terminal className="w-3 h-3 text-red-500/50" />
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Secure Administrative Node</span>
+            <Terminal className="w-3 h-3 text-red-500" />
+            <span className="text-[10px] text-slate-300 uppercase tracking-widest font-black">Secure Administrative Node</span>
           </div>
         </div>
         
@@ -82,13 +82,13 @@ export default function AdminLoginPage() {
           
           <div className="space-y-4">
             <div className="group">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block px-1">Node Identifier</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Node Identifier</label>
               <div className="relative">
                 <input
                   type="text"
                   required
                   autoFocus
-                  className="w-full px-4 py-3 bg-slate-950/50 border border-white/5 rounded-xl text-white outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all placeholder:text-slate-800"
+                  className="w-full px-4 py-3 bg-slate-950 border border-white/20 rounded-xl text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/20 transition-all placeholder:text-slate-600"
                   placeholder="USERNAME"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -97,12 +97,12 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="group">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block px-1">Access Protocol</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Access Protocol</label>
               <div className="relative">
                 <input
                   type="password"
                   required
-                  className="w-full px-4 py-3 bg-slate-950/50 border border-white/5 rounded-xl text-white outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all placeholder:text-slate-800"
+                  className="w-full px-4 py-3 bg-slate-950 border border-white/20 rounded-xl text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/20 transition-all placeholder:text-slate-600"
                   placeholder="PASSWORD"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -113,7 +113,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <main className="flex-1 overflow-y-auto relative p-4 lg:p-10 bg-transparent scroll-smooth">
              {children}
-          </div>
         </main>
       </div>
     </div>

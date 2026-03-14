@@ -18,7 +18,7 @@ export default function GroupsPage() {
   const fetchGroups = async (k: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/telegram/search_groups?keyword=${k}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/telegram/search_groups?keyword=${k}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
 

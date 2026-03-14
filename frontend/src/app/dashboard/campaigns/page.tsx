@@ -23,7 +23,7 @@ export default function CampaignsPage() {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/campaigns/', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/campaigns/', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -33,7 +33,7 @@ export default function CampaignsPage() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/campaigns/templates', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/campaigns/templates', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -43,7 +43,7 @@ export default function CampaignsPage() {
 
   const fetchGroups = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/telegram/joined-groups', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/telegram/joined-groups', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -58,7 +58,7 @@ export default function CampaignsPage() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/campaigns/', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/campaigns/', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
