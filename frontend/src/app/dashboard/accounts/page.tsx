@@ -20,7 +20,7 @@ export default function AccountsPage() {
 
   const fetchAccounts = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/accounts/', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/accounts/`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -31,7 +31,7 @@ export default function AccountsPage() {
   const handleSendCode = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/accounts/send_code', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/accounts/send_code`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export default function AccountsPage() {
   const handleSignIn = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}`}/api/accounts/signin', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/accounts/signin`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
