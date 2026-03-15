@@ -35,7 +35,8 @@ export default function TelegramLoginPage() {
       setPhoneCodeHash(data.phone_code_hash);
       setStep(2);
     } catch (err: any) {
-      setError(err.message.toUpperCase());
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      setError(`${err.message.toUpperCase()} (LINK: ${apiUrl})`);
     } finally {
       setLoading(false);
     }
