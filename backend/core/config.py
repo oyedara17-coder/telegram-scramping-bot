@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+    LIBSQL_AUTH_TOKEN: str = os.getenv("LIBSQL_AUTH_TOKEN", "")
     
     # JWT
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "secret")

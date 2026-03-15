@@ -13,7 +13,14 @@ settings = get_settings()
 
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+try:
+    print(f"Connecting to database at: {engine.url.render_as_string(hide_password=True)}")
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully.")
+except Exception as e:
+    print(f"FATAL ERROR: Failed to create database tables: {e}")
+    print("Please check your DATABASE_URL and LIBSQL_AUTH_TOKEN environment variables.")
+    # We don't exit here so at least the server might start or logs will show up before crash
 
 app = FastAPI(title=settings.PROJECT_NAME)
 

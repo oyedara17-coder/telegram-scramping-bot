@@ -5,12 +5,27 @@ from .config import get_settings
 
 settings = get_settings()
 
-# Check if using libSQL
-is_libsql = "libsql" in settings.DATABASE_URL
+# Normalize DATABASE_URL for LibSQL/Turso
+db_url = settings.DATABASE_URL
+if db_url.startswith("libsql://"):
+    db_url = db_url.replace("libsql://", "sqlite+libsql://", 1)
+elif db_url.startswith("https://") and "turso.io" in db_url:
+    db_url = db_url.replace("https://", "sqlite+libsql://", 1)
+
+is_libsql = "libsql" in db_url
+
+# Configure connect arguments
+connect_args = {}
+if db_url.startswith("sqlite") and not is_libsql:
+    connect_args["check_same_thread"] = False
+
+if is_libsql and settings.LIBSQL_AUTH_TOKEN:
+    # Adding authToken to connect_args for sqlalchemy-libsql
+    connect_args["authToken"] = settings.LIBSQL_AUTH_TOKEN
 
 engine = create_engine(
-    settings.DATABASE_URL, 
-    connect_args={"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") and not is_libsql else {}
+    db_url, 
+    connect_args=connect_args
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
