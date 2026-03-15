@@ -5,65 +5,31 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ShieldAlert, Terminal, ArrowRight, Phone, Key, Lock, ShieldCheck } from 'lucide-react';
 
-export default function AdminTelegramLoginPage() {
-  const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [securityCode, setSecurityCode] = useState('');
-  const [phoneCodeHash, setPhoneCodeHash] = useState('');
-  const [step, setStep] = useState(1); // 1: Phone, 2: Code
+export default function AdminLoginPage() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    if (securityCode !== '080789') {
-      setError('INVALID SECURITY CLEARANCE CODE.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/auth/telegram/send-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to send verification code.');
-      }
-
-      const data = await response.json();
-      setPhoneCodeHash(data.phone_code_hash);
-      setStep(2);
-    } catch (err: any) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-      setError(`${err.message.toUpperCase()} (LINK: ${apiUrl})`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/auth/telegram/verify`, {
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code, phone_code_hash: phoneCodeHash }),
+        body: formData,
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Invalid verification code.');
+        throw new Error(data.detail || 'Access Denied: Invalid credentials.');
       }
 
       const data = await response.json();
@@ -76,7 +42,8 @@ export default function AdminTelegramLoginPage() {
       localStorage.setItem('adminRole', data.role);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message.toUpperCase());
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      setError(`${err.message.toUpperCase()} (LINK: ${apiUrl})`);
     } finally {
       setLoading(false);
     }
@@ -105,13 +72,13 @@ export default function AdminTelegramLoginPage() {
         {/* Login Card */}
         <div className="bg-slate-900/80 backdrop-blur-xl p-10 rounded-3xl border border-white/5 shadow-2xl">
           
-          <form className="space-y-6" onSubmit={step === 1 ? handleSendCode : handleVerifyCode}>
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div className="text-center mb-2">
               <h2 className="text-xl font-black text-white uppercase italic">
-                {step === 1 ? 'Root Authorization' : 'Identity Confirmed'}
+                Root Authorization
               </h2>
               <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">
-                {step === 1 ? 'Provide administrative uplink' : 'Provide temporary link code'}
+                Provide administrative credentials
               </p>
             </div>
 
@@ -123,59 +90,39 @@ export default function AdminTelegramLoginPage() {
             )}
             
             <div className="space-y-4">
-              {step === 1 ? (
-                <>
-                  <div className="group">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Node Phone</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-600 transition-colors">
-                        <Phone className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="tel"
-                        required
-                        className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-white/10 rounded-xl text-white outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/20 transition-all font-bold placeholder:text-slate-700"
-                        placeholder="+1 234..."
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
+              <div className="group">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Admin Identity</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-600 transition-colors">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
-
-                  <div className="group">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Clearance Code</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-600 transition-colors">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="password"
-                        required
-                        className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-white/10 rounded-xl text-white outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/20 transition-all font-bold placeholder:text-slate-700"
-                        placeholder="••••••"
-                        value={securityCode}
-                        onChange={(e) => setSecurityCode(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="group">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 text-center">Telegram Code</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      maxLength={5}
-                      autoFocus
-                      className="w-full py-4 bg-red-600/5 border border-red-500/20 rounded-xl text-red-500 text-center text-3xl font-black tracking-[0.5em] outline-none focus:bg-red-600/10 focus:border-red-500/50 transition-all font-mono"
-                      placeholder="00000"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    required
+                    className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-white/10 rounded-xl text-white outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/20 transition-all font-bold placeholder:text-slate-700"
+                    placeholder="USERNAME"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
                 </div>
-              )}
+              </div>
+
+              <div className="group">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Access Passkey</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-600 transition-colors">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-white/10 rounded-xl text-white outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/20 transition-all font-bold placeholder:text-slate-700"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
             <button
@@ -187,21 +134,11 @@ export default function AdminTelegramLoginPage() {
                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  {step === 1 ? 'Initialize Link' : 'Confirm Identity'}
+                  Root Access
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
-            
-            {step === 2 && (
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="w-full text-[10px] text-slate-500 font-black hover:text-red-600 transition-colors uppercase tracking-widest text-center"
-              >
-                Reset Authorized Node
-              </button>
-            )}
           </form>
         </div>
 
