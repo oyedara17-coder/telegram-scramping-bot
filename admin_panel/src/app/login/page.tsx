@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
       formData.append('username', username);
       formData.append('password', password);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/users/login`, {
         method: 'POST',
         body: formData,
       });
@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
       localStorage.setItem('adminRole', data.role);
       router.push('/dashboard');
     } catch (err: any) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space';
       setError(`${err.message.toUpperCase()} (LINK: ${apiUrl})`);
     } finally {
       setLoading(false);

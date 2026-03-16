@@ -20,7 +20,7 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/admin/users`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/users`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
       });
       const data = await response.json();
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
 
   const updateStatus = async (userId: number, status: string) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/admin/users/${userId}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/users/${userId}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   const fetchKeywords = async () => {
     try {
       setKeywordLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/keywords`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
       });
       const data = await response.json();
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!newKeyword.trim()) return;
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/keywords`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
 
   const deleteKeyword = async (id: number) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/keywords/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
       });
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
 
   const toggleKeyword = async (id: number) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/keywords/${id}/toggle`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords/${id}/toggle`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
       });

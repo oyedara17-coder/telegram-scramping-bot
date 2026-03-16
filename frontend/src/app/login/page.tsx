@@ -20,7 +20,7 @@ export default function TelegramLoginPage() {
     setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/auth/telegram/send-code`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/users/auth/telegram/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone }),
@@ -35,7 +35,7 @@ export default function TelegramLoginPage() {
       setPhoneCodeHash(data.phone_code_hash);
       setStep(2);
     } catch (err: any) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space';
       setError(`${err.message.toUpperCase()} (LINK: ${apiUrl})`);
     } finally {
       setLoading(false);
@@ -48,7 +48,7 @@ export default function TelegramLoginPage() {
     setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/users/auth/telegram/verify`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/users/auth/telegram/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, code, phone_code_hash: phoneCodeHash }),
