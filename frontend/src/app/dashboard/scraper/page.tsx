@@ -10,6 +10,12 @@ export default function ScraperPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
+  // Search State
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchCountry, setSearchCountry] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+
   // Outreach State
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -34,7 +40,30 @@ export default function ScraperPage() {
     }
   };
 
-  const handleScrape = async () => {
+  const handleSearch = async () => {
+    if (!searchKeyword) return;
+    setSearching(true);
+    try {
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/telegram/search_groups`);
+      url.searchParams.append('keyword', searchKeyword);
+      if (searchCountry) url.searchParams.append('country', searchCountry);
+
+      const response = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      setSearchResults(data || []);
+    } catch (err) {
+      console.error('Search failed');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleScrape = async (overrideId?: string) => {
+    const idToScrape = overrideId || groupId;
+    if (!idToScrape) return;
+    
     setLoading(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/telegram/scrape_members`, {
@@ -43,10 +72,11 @@ export default function ScraperPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ group_id: groupId }),
+        body: JSON.stringify({ group_id: idToScrape }),
       });
       const data = await response.json();
       setMembers(data);
+      if (overrideId) setGroupId(overrideId);
     } catch (err) {
       alert('Scraping failed. Ensure the account is a member of the group.');
     } finally {
@@ -124,31 +154,105 @@ export default function ScraperPage() {
         </div>
 
 
-        <div className="glass-card p-6 md:p-8 rounded-[2rem] flex flex-col md:flex-row gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Zap className="w-24 h-24 text-primary" />
-          </div>
-          <input
-            type="text"
-            placeholder="Enter Group Username or ID (e.g. @cryptochat)"
-            className="flex-1 px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold text-foreground"
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
-          />
-          <button
-            onClick={handleScrape}
-            disabled={loading}
-            className="px-10 py-4 bg-primary text-white font-black rounded-2xl hover:shadow-lg hover:shadow-primary/25 transition-all disabled:opacity-50 uppercase tracking-widest text-xs flex items-center justify-center gap-3"
-          >
-            {loading ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            ) : (
-                <>
-                  Start Extraction
-                  <Zap className="w-4 h-4" />
-                </>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Global Search Section */}
+          <div className="glass-card p-8 rounded-[2rem] space-y-6 relative overflow-hidden group border-primary/20">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <h2 className="text-xl font-black text-foreground uppercase tracking-tighter italic leading-none">Global Group Search</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Niche (e.g. Real Estate)"
+                  className="px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+                <select
+                  className="px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs uppercase"
+                  value={searchCountry}
+                  onChange={(e) => setSearchCountry(e.target.value)}
+                >
+                  <option value="">Global Network</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Nigeria">Nigeria</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Germany">Germany</option>
+                  <option value="India">India</option>
+                  <option value="South Africa">South Africa</option>
+                  <option value="Brazil">Brazil</option>
+                  <option value="Russia">Russia</option>
+                  <option value="Dubai">Dubai (UAE)</option>
+                </select>
+              </div>
+              
+              <button
+                onClick={handleSearch}
+                disabled={searching || !searchKeyword}
+                className="w-full py-4 bg-primary text-white font-black rounded-xl hover:shadow-lg transition-all disabled:opacity-50 uppercase tracking-widest text-[10px] flex items-center justify-center gap-3"
+              >
+                {searching ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <>Detect Target Nodes <Zap className="w-4 h-4" /></>}
+              </button>
+            </div>
+
+            {searchResults.length > 0 && (
+              <div className="space-y-3 mt-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {searchResults.map((group, idx) => (
+                  <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-border rounded-2xl flex items-center justify-between group/item hover:border-primary/50 transition-all">
+                    <div>
+                      <p className="text-sm font-black text-foreground uppercase italic leading-none">{group.title}</p>
+                      <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest">@{group.username || group.id} • {group.participantsCount} Users</p>
+                    </div>
+                    <button 
+                      onClick={() => handleScrape(group.username || group.id)}
+                      className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
-          </button>
+          </div>
+
+          {/* Manual Entry Section */}
+          <div className="glass-card p-8 rounded-[2rem] space-y-6 relative overflow-hidden group">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
+                <Terminal className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <h2 className="text-xl font-black text-foreground uppercase tracking-tighter italic leading-none">Direct Node Uplink</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Enter Group Username or ID"
+                className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl outline-none focus:border-primary transition-all font-bold text-foreground"
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value)}
+              />
+              <button
+                onClick={() => handleScrape()}
+                disabled={loading || !groupId}
+                className="w-full py-4 bg-foreground text-background font-black rounded-2xl hover:shadow-lg transition-all disabled:opacity-50 uppercase tracking-widest text-xs flex items-center justify-center gap-3"
+              >
+                {loading ? <div className="w-5 h-5 border-2 border-slate-400 border-t-white rounded-full animate-spin" /> : <>Initialize Uplink <Zap className="w-4 h-4" /></>}
+              </button>
+            </div>
+            
+            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
+              <p className="text-[9px] text-amber-500/80 leading-relaxed font-bold uppercase italic tracking-widest">
+                WARNING: DIRECT ACCESS REQUIRES PRE-ESTABLISHED AUTHENTICATION WITH THE TARGET NODE.
+              </p>
+            </div>
+          </div>
         </div>
 
 

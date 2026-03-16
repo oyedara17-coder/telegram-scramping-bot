@@ -20,7 +20,29 @@ try:
 except Exception as e:
     print(f"FATAL ERROR: Failed to create database tables: {e}")
     print("Please check your DATABASE_URL and LIBSQL_AUTH_TOKEN environment variables.")
-    # We don't exit here so at least the server might start or logs will show up before crash
+
+def init_admin():
+    db = SessionLocal()
+    try:
+        # Check if admin already exists
+        admin = db.query(models.User).filter(models.User.username == "stepyzoid").first()
+        if not admin:
+            print("Initializing admin account...")
+            from core.auth import get_password_hash
+            new_admin = models.User(
+                username="stepyzoid",
+                password_hash=get_password_hash("080789"),
+                role="admin"
+            )
+            db.add(new_admin)
+            db.commit()
+            print("Admin account initialized successfully (stepyzoid).")
+        else:
+            print("Admin account 'stepyzoid' already exists.")
+    except Exception as e:
+        print(f"Error initializing admin: {e}")
+    finally:
+        db.close()
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -72,6 +94,7 @@ async def campaign_worker():
 
 @app.on_event("startup")
 async def startup_event():
+    init_admin()
     asyncio.create_task(campaign_worker())
     asyncio.create_task(monitor_service.start_monitoring())
 
