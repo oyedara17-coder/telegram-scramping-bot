@@ -28,12 +28,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token && !pathname.includes('/login')) {
+    setMounted(true);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token && pathname && !pathname.includes('/login')) {
       router.push('/login');
     }
   }, [pathname, router]);
@@ -44,9 +46,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       else setIsSidebarOpen(true);
     };
     window.addEventListener('resize', handleResize);
-    handleResize();
+    // Only call handleResize after mount to prevent hydration mismatch
+    if (mounted) {
+      handleResize();
+    }
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [mounted]);
 
   useEffect(() => { setIsMobileOpen(false); }, [pathname]);
 
@@ -137,10 +142,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-3" style={{ borderTop: '1px solid rgba(59,130,246,0.12)' }}>
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all"
-            style={{ color: '#64748B' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.1)'; (e.currentTarget as HTMLElement).style.color = '#EF4444'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#64748B'; }}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-red-500/10 hover:text-red-500 text-slate-500"
           >
             <LogOut className="w-5 h-5 min-w-[20px]" />
             {(isSidebarOpen || isMobileOpen) && <span className="text-sm font-bold">Sign Out</span>}
