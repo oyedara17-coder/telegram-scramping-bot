@@ -21,25 +21,24 @@ def init_db():
     
     db = SessionLocal()
     # Check if admin already exists
-    admin = db.query(models.User).filter(models.User.username == "stepyzoid studio admin").first()
+    admin = db.query(models.User).filter(models.User.username == "stepyzoid").first()
     if not admin:
         print("Creating admin user...")
-        # We'll use get_password_hash from auth.py first, if it fails we fall back
         try:
             from core.auth import get_password_hash
-            pwd_hash = get_password_hash("admin123")
+            pwd_hash = get_password_hash("080789")
         except:
             print("Bcrypt failed, using SHA256 fallback for init...")
-            pwd_hash = get_simple_hash("admin123")
+            pwd_hash = get_simple_hash("080789")
             
         admin = models.User(
-            username="stepyzoid studio admin",
+            username="stepyzoid",
             password_hash=pwd_hash,
             role="admin"
         )
         db.add(admin)
         db.commit()
-        print("Admin user created (stepyzoid studio admin / admin123)")
+        print("Admin user created (stepyzoid / 080789)")
     else:
         print("Admin user already exists")
     db.close()

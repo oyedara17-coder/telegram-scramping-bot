@@ -180,9 +180,14 @@ async def verify_telegram_code(request: TelegramVerifyRequest, db: Session = Dep
 
         access_token = create_access_token(data={"sub": user.username or str(user.telegram_id), "role": user.role})
         return {"access_token": access_token, "token_type": "bearer", "role": user.role}
-
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        error_msg = str(e)
+        if "UNAUTHORIZED" in error_msg.upper() or "EMPTY JWT" in error_msg.upper():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                detail="System Authentication Error: The backend is unable to connect to the database. Please verify the LIBSQL_AUTH_TOKEN in your Hugging Face space secrets."
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
 
 @router.get("/me", response_model=UserOut)
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
