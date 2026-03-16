@@ -14,49 +14,41 @@ import {
   Settings, 
   Menu, 
   Bell, 
-  Search as SearchIcon, 
   ChevronLeft, 
   LogOut, 
-  Moon, 
-  Sun,
   User,
-  ShieldCheck,
   Zap,
   ChevronRight,
-  Send
+  Send,
+  Target
 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token && !pathname.includes('/login') && !pathname.includes('/signup')) {
+    if (!token && !pathname.includes('/login')) {
       router.push('/login');
     }
   }, [pathname, router]);
 
-  // Handle mobile resize
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsSidebarOpen(true); // Always expanded when in mobile drawer mode
-      }
+      if (window.innerWidth < 1024) setIsSidebarOpen(false);
+      else setIsSidebarOpen(true);
     };
     window.addEventListener('resize', handleResize);
     handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    setIsMobileOpen(false);
-  }, [pathname]);
+  useEffect(() => { setIsMobileOpen(false); }, [pathname]);
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -65,15 +57,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Group Finder', icon: Search, path: '/dashboard/groups' },
     { name: 'Scraper', icon: UserPlus, path: '/dashboard/scraper' },
     { name: 'Campaigns', icon: Megaphone, path: '/dashboard/campaigns' },
-    { name: 'Leads', icon: MessageSquare, path: '/dashboard/leads' },
+    { name: 'Leads', icon: Target, path: '/dashboard/leads' },
     { name: 'Templates', icon: MessageSquare, path: '/dashboard/templates' },
     { name: 'Automation Logs', icon: Terminal, path: '/dashboard/logs' },
     { name: 'System Settings', icon: Settings, path: '/dashboard/settings' },
   ];
-
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const toggleMobileSidebar = () => setIsMobileOpen(!isMobileOpen);
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -81,159 +69,168 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      <div className="flex h-screen bg-transparent text-foreground overflow-hidden font-sans">
-        
-        {/* Mobile Backdrop */}
-        {isMobileOpen && (
-          <div 
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
-            onClick={() => setIsMobileOpen(false)}
-          />
-        )}
+    <div className="min-h-screen flex h-screen overflow-hidden" style={{ fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
 
-        {/* Sidebar */}
-        <aside 
-          className={`fixed inset-y-0 left-0 z-50 lg:relative flex flex-col glass-card !rounded-none !border-y-0 !border-l-0 transition-all duration-300 ease-in-out ${
-            isMobileOpen 
-              ? 'translate-x-0 w-72' 
-              : '-translate-x-full lg:translate-x-0 ' + (isSidebarOpen ? 'w-72' : 'w-20')
-          }`}
-        >
-          {/* Logo Section */}
-          <div className="h-20 flex items-center px-6 border-b border-border">
-            <div className="flex items-center gap-3 overflow-hidden">
-               <div className="min-w-[40px] h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
-                  <Zap className="w-5 h-5 text-white" />
-               </div>
-               {(isSidebarOpen || isMobileOpen) && (
-                 <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-500">
-                    <span className="text-sm font-black tracking-tighter uppercase font-heading">Stepyzoid</span>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] -mt-1">Studio Elite</span>
-                 </div>
-               )}
+      {/* ===== SIDEBAR ===== */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 lg:relative flex flex-col transition-all duration-300 ease-in-out ${
+          isMobileOpen 
+            ? 'translate-x-0 w-72' 
+            : '-translate-x-full lg:translate-x-0 ' + (isSidebarOpen ? 'w-64' : 'w-[72px]')
+        }`}
+        style={{
+          background: 'rgba(4, 8, 20, 0.92)',
+          borderRight: '1px solid rgba(59,130,246,0.15)',
+          backdropFilter: 'blur(24px)',
+        }}
+      >
+        {/* Logo */}
+        <div className="h-20 flex items-center px-5 gap-3" style={{ borderBottom: '1px solid rgba(59,130,246,0.12)' }}>
+          <div className="min-w-[44px] h-11 rounded-xl overflow-hidden flex items-center justify-center"
+            style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
+            <div className="w-8 h-8 relative">
+              <Image src="/logo.png" alt="Logo" fill className="object-contain" />
             </div>
           </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-            {navItems.map((item) => {
-              const isActive = pathname === item.path;
-              return (
-                <Link 
-                  key={item.path} 
-                  href={item.path}
-                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group relative ${
-                    isActive 
-                      ? 'bg-primary text-white shadow-xl shadow-primary/20' 
-                      : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary'
-                  }`}
-                >
-                  <item.icon className={`w-5 h-5 min-w-[20px] ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
-                  {(isSidebarOpen || isMobileOpen) && (
-                    <span className="text-sm font-bold truncate animate-in fade-in slide-in-from-left-2">{item.name}</span>
-                  )}
-                  {isActive && (
-                    <div className="absolute left-0 w-1 h-6 bg-white rounded-r-full" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Sidebar Footer */}
-          <div className="p-4 border-t border-border">
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all group"
-            >
-              <LogOut className="w-5 h-5 min-w-[20px] group-hover:text-red-600" />
-              {(isSidebarOpen || isMobileOpen) && <span className="text-sm font-bold animate-in fade-in">Sign Out</span>}
-            </button>
-          </div>
-
-          {/* Collapse Toggle (Desktop only) */}
-          <button 
-            onClick={toggleSidebar}
-            className="absolute -right-4 top-24 w-8 h-8 bg-card border border-border rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform hidden lg:flex"
-          >
-            {isSidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
-        </aside>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          
-          {/* Top Navbar */}
-          <header className="h-20 glass-card !rounded-none !border-x-0 !border-t-0 px-4 lg:px-8 flex items-center justify-between z-20">
-            <div className="flex items-center gap-4 lg:gap-6 flex-1">
-              <button 
-                onClick={toggleMobileSidebar}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors lg:hidden"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              
-              <div className="max-w-md w-full relative hidden md:block">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input 
-                  type="text"
-                  placeholder="Universal Search..."
-                  className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+          {(isSidebarOpen || isMobileOpen) && (
+            <div className="overflow-hidden">
+              <p className="text-white font-black text-sm uppercase tracking-tight leading-none font-heading" style={{ fontFamily: 'Poppins, sans-serif' }}>Stepyzoid</p>
+              <p className="text-xs font-bold uppercase tracking-widest mt-0.5" style={{ color: '#3B82F6' }}>Studio Elite</p>
             </div>
-
-            <div className="flex items-center gap-2 lg:gap-4">
-              {/* Theme Toggle */}
-              <button 
-                onClick={toggleDarkMode}
-                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all relative group"
-              >
-                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-500" />}
-                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Toggle Theme</span>
-              </button>
-
-              {/* Notifications */}
-              <button className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all relative hidden sm:flex">
-                <Bell className="w-5 h-5 text-slate-500" />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-card" />
-              </button>
-
-              <div className="w-px h-6 bg-border mx-1 sm:mx-2" />
-
-              {/* Profile Dropdown */}
-              <button className="flex items-center gap-2 lg:gap-3 pl-2 pr-1 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all">
-                <div className="flex flex-col text-right hidden xl:flex">
-                  <span className="text-xs font-black uppercase tracking-wider leading-none">Admin Node</span>
-                  <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-widest mt-0.5">Verified</span>
-                </div>
-                <div className="w-9 h-9 lg:w-10 lg:h-10 bg-slate-100 dark:bg-slate-800 rounded-xl border border-border flex items-center justify-center overflow-hidden">
-                   <User className="w-5 h-5 text-slate-400" />
-                </div>
-              </button>
-            </div>
-          </header>
-
-          {/* Breadcrumbs */}
-          <div className="px-4 lg:px-8 py-3 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-white/5 bg-transparent">
-             <Link href="/dashboard" className="hover:text-primary transition-colors">Home</Link>
-             <ChevronRight className="w-3 h-3" />
-             <span className="text-slate-200">Dashboard</span>
-          </div>
-
-          {/* Scrollable Content */}
-          <main className="flex-1 overflow-y-auto p-4 lg:p-10 relative scroll-smooth bg-transparent">
-             <div className="max-w-[1600px] mx-auto animate-fade-in">
-               {children}
-             </div>
-          </main>
+          )}
         </div>
 
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <Link 
+                key={item.path} 
+                href={item.path}
+                className="flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative"
+                style={{
+                  background: isActive ? 'rgba(59,130,246,0.2)' : 'transparent',
+                  border: isActive ? '1px solid rgba(59,130,246,0.35)' : '1px solid transparent',
+                  color: isActive ? '#FFFFFF' : '#94A3B8',
+                }}
+              >
+                {isActive && <div className="absolute left-0 w-0.5 h-6 rounded-r-full" style={{ background: '#3B82F6' }} />}
+                <item.icon className="w-5 h-5 min-w-[20px]" style={{ color: isActive ? '#60A5FA' : '#64748B' }} />
+                {(isSidebarOpen || isMobileOpen) && (
+                  <span className="text-sm font-bold truncate" style={{ color: isActive ? '#F1F5F9' : '#94A3B8' }}>{item.name}</span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Logout */}
+        <div className="p-3" style={{ borderTop: '1px solid rgba(59,130,246,0.12)' }}>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all"
+            style={{ color: '#64748B' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.1)'; (e.currentTarget as HTMLElement).style.color = '#EF4444'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#64748B'; }}
+          >
+            <LogOut className="w-5 h-5 min-w-[20px]" />
+            {(isSidebarOpen || isMobileOpen) && <span className="text-sm font-bold">Sign Out</span>}
+          </button>
+        </div>
+
+        {/* Collapse toggle */}
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute -right-3.5 top-24 w-7 h-7 rounded-full hidden lg:flex items-center justify-center transition-all hover:scale-110"
+          style={{ background: '#0f172a', border: '1px solid rgba(59,130,246,0.3)', color: '#3B82F6' }}
+        >
+          {isSidebarOpen ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+      </aside>
+
+      {/* ===== MAIN CONTENT ===== */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        
+        {/* Top Navbar */}
+        <header className="h-20 flex items-center justify-between px-6 z-20 flex-shrink-0"
+          style={{
+            background: 'rgba(4, 8, 20, 0.85)',
+            borderBottom: '1px solid rgba(59,130,246,0.12)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
+          <div className="flex items-center gap-4 flex-1">
+            {/* Mobile menu button */}
+            <button 
+              onClick={() => setIsMobileOpen(!isMobileOpen)}
+              className="p-2 rounded-xl lg:hidden"
+              style={{ background: 'rgba(255,255,255,0.05)', color: '#94A3B8' }}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            
+            {/* Search */}
+            <div className="max-w-sm w-full relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#475569' }} />
+              <input 
+                type="text"
+                placeholder="Universal Search..."
+                className="w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#F1F5F9' }}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <button className="p-2.5 rounded-xl relative hidden sm:flex"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <Bell className="w-5 h-5" style={{ color: '#94A3B8' }} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
+            </button>
+
+            <div className="w-px h-8 mx-1" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+            {/* User */}
+            <div className="flex items-center gap-3 pl-2">
+              <div className="hidden xl:flex flex-col text-right">
+                <span className="text-xs font-black text-white uppercase tracking-wider">Admin Node</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#10B981' }}>Verified</span>
+              </div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
+                <User className="w-5 h-5" style={{ color: '#60A5FA' }} />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Breadcrumb */}
+        <div className="px-6 py-2.5 flex items-center gap-2"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
+          <Link href="/dashboard" className="text-[10px] font-bold uppercase tracking-widest transition-colors" style={{ color: '#475569' }}>Home</Link>
+          <ChevronRight className="w-3 h-3" style={{ color: '#334155' }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#94A3B8' }}>Dashboard</span>
+        </div>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-10" style={{ background: 'transparent' }}>
+          <div className="max-w-[1600px] mx-auto animate-fade-in">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
 }
-
