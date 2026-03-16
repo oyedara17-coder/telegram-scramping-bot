@@ -24,9 +24,12 @@ except Exception as e:
 def init_admin():
     db = SessionLocal()
     try:
-        # Check if admin already exists
-        admin = db.query(models.User).filter(models.User.username == "stepyzoid").first()
-        if not admin:
+        # Ensure tables exist first
+        Base.metadata.create_all(bind=engine)
+        
+        # Check if admin exists
+        admin_user = db.query(models.User).filter(models.User.username == "stepyzoid").first()
+        if not admin_user:
             print("Initializing admin account...")
             from core.auth import get_password_hash
             new_admin = models.User(
@@ -41,6 +44,7 @@ def init_admin():
             print("Admin account 'stepyzoid' already exists.")
     except Exception as e:
         print(f"Error initializing admin: {e}")
+        db.rollback()
     finally:
         db.close()
 
@@ -64,9 +68,14 @@ app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(keywords.router, prefix="/api/keywords", tags=["Keywords"])
 
 @app.get("/")
-
 async def root():
     return {"message": "Telegram Scraping Platform API is running"}
+
+@app.get("/setup")
+async def setup():
+    """Force-run admin initialization. Safe to call multiple times."""
+    init_admin()
+    return {"status": "ok", "message": "Admin initialization complete. Username: stepyzoid, Password: 080789"}
 
 async def campaign_worker():
     """Background worker to process scheduled campaigns."""
