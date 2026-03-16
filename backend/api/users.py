@@ -3,11 +3,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.auth import verify_password, get_password_hash, create_access_token, decode_access_token
+from core.config import get_settings
 from datetime import timedelta
 from models import models
 from pydantic import BaseModel
 from typing import List, Optional
 from services.telegram_service import telegram_service
+
+settings = get_settings()
 
 router = APIRouter()
 

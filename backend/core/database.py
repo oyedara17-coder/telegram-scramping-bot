@@ -19,9 +19,16 @@ connect_args = {}
 if db_url.startswith("sqlite") and not is_libsql:
     connect_args["check_same_thread"] = False
 
-if is_libsql and settings.LIBSQL_AUTH_TOKEN:
-    # Adding authToken to connect_args for sqlalchemy-libsql
-    connect_args["authToken"] = settings.LIBSQL_AUTH_TOKEN
+if is_libsql:
+    if settings.LIBSQL_AUTH_TOKEN:
+        # Adding authToken to connect_args for sqlalchemy-libsql
+        connect_args["authToken"] = settings.LIBSQL_AUTH_TOKEN
+    elif db_url.startswith("sqlite+libsql://") and "turso.io" in db_url:
+        # Fail early with a descriptive message if Turso is used without a token
+        raise ValueError(
+            "FATAL: LIBSQL_AUTH_TOKEN is missing. This token is required for Turso/LibSQL cloud databases. "
+            "Please set the LIBSQL_AUTH_TOKEN environment variable."
+        )
 
 engine = create_engine(
     db_url, 
