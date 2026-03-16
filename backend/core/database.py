@@ -24,11 +24,13 @@ if is_libsql:
     token = settings.LIBSQL_AUTH_TOKEN or os.getenv("LIBSQL_AUTH_TOKEN")
     
     if token:
-        # Adding authToken to connect_args for sqlalchemy-libsql
-        # Note: Some versions use 'authToken', others use 'auth_token'
-        connect_args["authToken"] = token
-        connect_args["auth_token"] = token
-        print("INFO: LIBSQL_AUTH_TOKEN detected and configured.")
+        # Pass token in URL for better compatibility with different driver versions
+        # This prevents "unexpected keyword argument" errors
+        if "?" in db_url:
+            db_url += f"&authToken={token}"
+        else:
+            db_url += f"?authToken={token}"
+        print("INFO: LIBSQL_AUTH_TOKEN detected and added to URL.")
     else:
         # If the URL is a remote one (not local file), we REQUIRE a token
         if "turso.io" in db_url or db_url.startswith("sqlite+libsql://") and not ":memory:" in db_url:
