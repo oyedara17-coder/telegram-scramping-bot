@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Send, Users, ShieldCheck, Zap, MessageSquare, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { Send, Users, ShieldCheck, Zap, MessageSquare, AlertTriangle, CheckCircle2, Clock, ArrowRight, Terminal } from 'lucide-react';
 
 
 export default function ScraperPage() {
