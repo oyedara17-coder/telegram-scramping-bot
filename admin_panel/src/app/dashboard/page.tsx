@@ -116,10 +116,10 @@ export default function AdminDashboard() {
               <p className="text-slate-500 mt-2 font-medium text-xs tracking-wide">Manage node access, monitor core telemetry, and override user statuses.</p>
             </div>
             <div className="flex gap-4">
-               <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50 border border-white/10 rounded-2xl backdrop-blur-sm">
-                  <span className="block text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Active Nodes</span>
-                  <span className="text-2xl font-black text-foreground leading-none">{users.length}</span>
-               </div>
+                <div className="px-6 py-4 bg-slate-950/50 border border-white/10 rounded-2xl backdrop-blur-sm">
+                   <span className="block text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Active Nodes</span>
+                   <span className="text-2xl font-black text-foreground leading-none">{users.length}</span>
+                </div>
                <div className="px-6 py-4 bg-primary/10 border border-primary/20 rounded-2xl backdrop-blur-sm">
                   <span className="block text-primary/70 text-[10px] font-black uppercase tracking-widest mb-1">Threat Level</span>
                   <span className="text-2xl font-black text-primary tracking-tighter italic leading-none">OPTIMAL</span>
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
           <button 
             onClick={() => setActiveTab('nodes')}
             className={`px-8 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === 'nodes' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-foreground hover:bg-white/5'
+              activeTab === 'nodes' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-foreground hover:bg-slate-950/50'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
           <button 
             onClick={() => setActiveTab('keywords')}
             className={`px-8 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === 'keywords' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-foreground hover:bg-white/5'
+              activeTab === 'keywords' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-foreground hover:bg-slate-950/50'
             }`}
           >
             <Key className="w-4 h-4" />
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                   <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
                   
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-primary/30 transition-all">
+                    <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)] overflow-hidden p-1.5 backdrop-blur-sm">
                       <Users className="w-6 h-6 text-slate-500 group-hover:text-primary transition-colors" />
                     </div>
                     <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                     <div className="p-12 text-center text-slate-500 font-mono uppercase text-xs tracking-widest">No triggers defined. Uplink monitoring is blind.</div>
                   ) : (
                     keywords.map((kw: any) => (
-                      <div key={kw.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors group">
+                      <div key={kw.id} className="p-6 flex items-center justify-between hover:bg-slate-950/50 transition-colors group">
                         <div className="flex items-center gap-4">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${kw.is_active ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-slate-950 border-white/10 text-slate-500'}`}>
                             <Key className="w-5 h-5" />
@@ -267,14 +267,14 @@ export default function AdminDashboard() {
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => toggleKeyword(kw.id)}
-                            className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-white/10 hover:border-emerald-500/30 text-slate-400 hover:text-emerald-500 transition-all"
+                            className="p-3 bg-slate-950 rounded-xl border border-white/10 hover:border-emerald-500/30 text-slate-400 hover:text-emerald-500 transition-all"
                             title={kw.is_active ? "Disable Trigger" : "Enable Trigger"}
                           >
                             <Power className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => deleteKeyword(kw.id)}
-                            className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-500 transition-all"
+                            className="p-3 bg-slate-950 rounded-xl border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-500 transition-all"
                             title="Purge Trigger"
                           >
                             <Trash2 className="w-4 h-4" />

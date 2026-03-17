@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="p-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] overflow-hidden p-1.5 backdrop-blur-sm">
+            <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)] overflow-hidden p-1.5 backdrop-blur-sm">
               <Image src="/logo.png" alt="Logo" width={48} height={48} className="w-full h-full object-contain drop-shadow-lg" />
             </div>
             <div className="flex flex-col">

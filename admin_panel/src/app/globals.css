@@ -2,32 +2,20 @@
 
 @layer base {
   :root {
-    --background: #F9FAFB;
-    --foreground: #111827;
-    --primary: #4F46E5;
+    /* Force dark theme always */
+    --background: transparent;
+    --foreground: #F1F5F9;
+    --primary: #EF4444; /* Admin uses Red primary */
     --primary-foreground: #FFFFFF;
-    --secondary: #3B82F6;
+    --secondary: #6366F1;
     --secondary-foreground: #FFFFFF;
-    --card: #FFFFFF;
-    --card-foreground: #111827;
-    --border: #E5E7EB;
-    --input: #E5E7EB;
-    --ring: #4F46E5;
+    --card: rgba(10, 15, 30, 0.75);
+    --card-foreground: #F1F5F9;
+    --muted-foreground: #94A3B8;
+    --border: rgba(255,255,255,0.08);
+    --input: rgba(255,255,255,0.08);
+    --ring: #EF4444;
     --radius: 1rem;
-  }
-
-  .dark {
-    --background: #111827;
-    --foreground: #F9FAFB;
-    --primary: #6366F1;
-    --primary-foreground: #FFFFFF;
-    --secondary: #3B82F6;
-    --secondary-foreground: #FFFFFF;
-    --card: #1F2937;
-    --card-foreground: #F9FAFB;
-    --border: #374151;
-    --input: #374151;
-    --ring: #6366F1;
   }
 }
 
@@ -43,6 +31,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-muted-foreground: var(--muted-foreground);
   
   --radius-2xl: var(--radius);
   
@@ -52,18 +41,37 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
+    box-sizing: border-box;
+  }
+  html, body {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased transition-colors duration-300;
+    color: var(--foreground);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-color: #050a12;
     background-image: url('/bg.jpg');
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
+    background-repeat: no-repeat;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-bold text-foreground;
+    font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 900;
+    color: #F1F5F9;
   }
+  p, span, label, td, th {
+    color: #CBD5E1;
+  }
+  /* Global scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(239,68,68,0.4); border-radius: 99px; }
 }
 
 /* Premium Animations */
@@ -72,10 +80,84 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(239,68,68,0.2); }
+  50% { box-shadow: 0 0 40px rgba(239,68,68,0.4); }
+}
+
 .animate-fade-in {
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* Glass cards — dark, translucent, clearly readable */
 .glass-card {
-  @apply bg-white/80 dark:bg-[#0a0f1a]/60 backdrop-blur-xl border border-white/20 dark:border-cyan-500/20 shadow-2xl shadow-cyan-900/10;
+  background: rgba(6, 10, 24, 0.70);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* Sidebar specific dark styling */
+.sidebar-nav-item {
+  color: #94A3B8;
+  transition: all 0.2s;
+}
+.sidebar-nav-item:hover {
+  color: #F1F5F9;
+  background: rgba(239,68,68,0.12);
+}
+.sidebar-nav-item.active {
+  color: #FFFFFF;
+  background: rgba(239,68,68,0.25);
+  border: 1px solid rgba(239,68,68,0.4);
+}
+
+/* Input fields - dark */
+input, textarea, select {
+  background-color: #020617 !important;
+  color: #F1F5F9 !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Force dropdown options to be dark and readable — critical for dark themes */
+select,
+select * {
+  background-color: #020617 !important;
+  color: #F1F5F9 !important;
+}
+
+select option {
+  background-color: #020617 !important;
+  color: #F1F5F9 !important;
+  padding: 8px 12px;
+}
+
+select option:hover,
+select option:checked {
+  background-color: #cc2222 !important;
+  color: #FFFFFF !important;
+}
+
+select::-ms-expand {
+  background-color: #020617 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #475569 !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: rgba(239,68,68,0.5) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(239,68,68,0.15);
+}
+
+/* Premium Avatar System */
+.premium-avatar {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+  color: white;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
