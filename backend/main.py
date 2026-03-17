@@ -86,41 +86,42 @@ async def setup():
 
 @app.get("/force-reset-admin")
 async def force_reset_admin():
-    """Nuclear option: DELETE and recreate admin user from scratch."""
+    """Nuclear option: DELETE and recreate admin user using raw SQL."""
     db = SessionLocal()
     try:
-        from core.auth import get_password_hash
+        from sqlalchemy import text
         
-        # Delete any existing admin user
-        existing = db.query(models.User).filter(models.User.username == "stepyzoid").first()
-        if existing:
-            db.delete(existing)
-            db.commit()
-        
-        # Create fresh admin
-        new_admin = models.User(
-            username="stepyzoid",
-            password_hash=get_password_hash("080789"),
-            role="admin",
-            status="active"
-        )
-        db.add(new_admin)
+        # Step 1: Delete using raw SQL to avoid any ORM/bcrypt interaction
+        db.execute(text("DELETE FROM users WHERE username = 'stepyzoid'"))
         db.commit()
         
-        # Verify it works
-        from core.auth import verify_password
-        check = db.query(models.User).filter(models.User.username == "stepyzoid").first()
-        password_works = verify_password("080789", check.password_hash) if check else False
+        # Step 2: Generate new password hash
+        from core.auth import get_password_hash
+        new_hash = get_password_hash("080789")
         
-        return {
-            "status": "ok", 
-            "message": f"Admin forcefully recreated. Password verification: {password_works}",
-            "user_id": check.id if check else None,
-            "role": check.role if check else None
-        }
+        # Step 3: Insert fresh admin using raw SQL
+        db.execute(text(
+            "INSERT INTO users (username, password_hash, role, status) VALUES (:username, :password_hash, :role, :status)"
+        ), {"username": "stepyzoid", "password_hash": new_hash, "role": "admin", "status": "active"})
+        db.commit()
+        
+        # Step 4: Verify it works
+        result = db.execute(text("SELECT id, username, role, password_hash FROM users WHERE username = 'stepyzoid'")).fetchone()
+        if result:
+            from core.auth import verify_password
+            pw_ok = verify_password("080789", result[3])
+            return {
+                "status": "ok", 
+                "message": f"Admin recreated. Password verify: {pw_ok}",
+                "user_id": result[0],
+                "role": result[2]
+            }
+        else:
+            return {"status": "error", "message": "Insert succeeded but user not found after insert"}
     except Exception as e:
         db.rollback()
-        return {"status": "error", "message": str(e)}
+        import traceback
+        return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
     finally:
         db.close()
 
