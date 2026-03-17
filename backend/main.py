@@ -95,9 +95,9 @@ async def force_reset_admin():
         db.execute(text("DELETE FROM users WHERE username = 'stepyzoid'"))
         db.commit()
         
-        # Step 2: Generate new password hash
-        from core.auth import get_password_hash
-        new_hash = get_password_hash("080789")
+        # Step 2: Generate new password hash using sha256 (safest fallback)
+        import hashlib
+        new_hash = hashlib.sha256("080789".encode()).hexdigest()
         
         # Step 3: Insert fresh admin using raw SQL
         db.execute(text(
@@ -112,9 +112,10 @@ async def force_reset_admin():
             pw_ok = verify_password("080789", result[3])
             return {
                 "status": "ok", 
-                "message": f"Admin recreated. Password verify: {pw_ok}",
+                "message": f"Admin recreated with SHA256. Password verify: {pw_ok}",
                 "user_id": result[0],
-                "role": result[2]
+                "role": result[2],
+                "hash_type": "sha256"
             }
         else:
             return {"status": "error", "message": "Insert succeeded but user not found after insert"}
