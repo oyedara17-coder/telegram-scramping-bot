@@ -109,15 +109,15 @@ export default function CampaignsPage() {
                 <input
                   type="text"
                   placeholder="e.g. ALPHA_OUTREACH_V1"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                  className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-mono text-foreground"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Message Template</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Message Protocol</label>
                 <select
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs uppercase tracking-wider"
+                  className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-bold text-xs uppercase tracking-wider text-foreground"
                   value={templateId}
                   onChange={(e) => setTemplateId(e.target.value)}
                 >
@@ -130,7 +130,7 @@ export default function CampaignsPage() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Target Cluster (Optional)</label>
                 <select
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs uppercase tracking-wider"
+                  className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-bold text-xs uppercase tracking-wider text-foreground"
                   value={groupId}
                   onChange={(e) => setGroupId(e.target.value)}
                 >
@@ -144,7 +144,7 @@ export default function CampaignsPage() {
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Execution Schedule (Optional)</label>
                 <input
                   type="datetime-local"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs uppercase tracking-wider"
+                  className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-bold text-xs uppercase tracking-wider text-foreground"
                   value={scheduleTime}
                   onChange={(e) => setScheduleTime(e.target.value)}
                 />
@@ -153,12 +153,12 @@ export default function CampaignsPage() {
               <button
                 onClick={handleCreate}
                 disabled={loading}
-                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:shadow-lg hover:shadow-primary/25 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                className="w-full py-5 bg-foreground text-background font-black rounded-2xl hover:shadow-2xl hover:translate-y-[-2px] transition-all text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 border border-white/5"
               >
                 {loading ? (
-                   <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                   <div className="w-5 h-5 border-2 border-background/20 border-t-background rounded-full animate-spin" />
                 ) : (
-                  <>Execute Campaign</>
+                  <>Execute Campaign <Zap className="w-4 h-4" /></>
                 )}
               </button>
             </div>
@@ -169,12 +169,12 @@ export default function CampaignsPage() {
           <div className="lg:col-span-2 glass-card rounded-[2rem] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-white/10 dark:border-white/5 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                <thead className="bg-slate-950 border-b border-white/5 text-[10px] text-muted-foreground uppercase font-black tracking-widest sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-5">Campaign Name</th>
+                    <th className="px-6 py-5">Protocol Identity</th>
                     <th className="px-6 py-5">Status</th>
-                    <th className="px-6 py-5">Progress</th>
-                    <th className="px-6 py-5 text-right">Actions</th>
+                    <th className="px-6 py-5">Uplink Vitality</th>
+                    <th className="px-6 py-5 text-right">Control</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10 dark:divide-white/5">
@@ -186,25 +186,31 @@ export default function CampaignsPage() {
                     </tr>
                   ) : (
                     campaigns.map((c: any) => (
-                      <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                        <td className="px-6 py-5 font-black text-foreground italic">{c.name}</td>
-                        <td className="px-6 py-5">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-current ${
-                            c.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 
-                            c.status === 'running' ? 'bg-red-500/10 text-red-500 animate-pulse border-red-500/20' : 
+                      <tr key={c.id} className="hover:bg-slate-800/30 transition-colors group border-b border-white/5 last:border-0">
+                        <td className="px-6 py-6">
+                            <p className="font-black text-foreground italic uppercase leading-none">{c.name}</p>
+                            <p className="text-[9px] font-bold text-muted-foreground/40 mt-1 uppercase tracking-widest">NODE_ID: {c.id}</p>
+                        </td>
+                        <td className="px-6 py-6">
+                          <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-current ${
+                            c.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)] border-emerald-500/20' : 
+                            c.status === 'running' ? 'bg-primary/10 text-primary animate-pulse border-primary/20' : 
                             'bg-slate-500/10 text-slate-500 border-slate-500/20'
                           }`}>
                             {c.status}
                           </span>
                         </td>
-                        <td className="px-6 py-5">
-                          <div className="w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                            <div className={`h-full rounded-full transition-all duration-1000 ${c.status === 'completed' ? 'bg-emerald-500 w-full' : 'bg-primary w-[45%]'}`}></div>
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/5 max-w-[120px]">
+                                <div className={`h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)] ${c.status === 'completed' ? 'bg-emerald-500 w-full' : 'bg-primary w-[45%]'}`}></div>
+                            </div>
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tabular-nums">{c.status === 'completed' ? '100%' : '45%'}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-right">
-                          <button className="text-[10px] font-black text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors">
-                            Abort
+                        <td className="px-6 py-6 text-right">
+                          <button className="px-4 py-2 text-[10px] font-black text-muted-foreground hover:text-red-500 uppercase tracking-widest transition-all bg-slate-900/50 hover:bg-red-500/10 rounded-lg border border-white/5 hover:border-red-500/20">
+                            Terminate
                           </button>
                         </td>
                       </tr>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import Link from 'next/link';
 import { 
   Users, 
   Send, 
@@ -25,36 +26,55 @@ export default function DashboardOverview() {
     joined_groups: 0,
     active_campaigns: 0,
     total_leads: 0,
-    messagesSent: 0
+    messages_sent: 0
   });
+  const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/stats`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+        
+        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/stats`, { headers });
+        if (statsRes.ok) {
+          const data = await statsRes.json();
           setStats({
-            ...stats,
             joined_groups: data.joined_groups,
             active_campaigns: data.active_campaigns,
             total_leads: data.total_leads,
+            messages_sent: data.messages_sent || 0
           });
         }
+        
+        const logsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/logs`, { headers });
+        if (logsRes.ok) {
+           const logsData = await logsRes.json();
+           setLogs(logsData);
+        }
       } catch (err) {
-        console.error('Failed to fetch stats:', err);
+        console.error('Failed to fetch dashboard data:', err);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
+
+  const handleExportTelemetry = () => {
+    const dataStr = JSON.stringify(logs, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = 'telemetry_export.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
 
   const kpis = [
     { name: 'Joined Groups', value: stats.joined_groups, icon: Users, color: 'text-primary', bg: 'bg-primary/10', trend: 'Live nodes' },
     { name: 'Total Leads', value: stats.total_leads, icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-500/10', trend: 'Potential buyers' },
-    { name: 'Messaging Groups', value: stats.active_campaigns, icon: Zap, color: 'text-amber-500', bg: 'bg-amber-500/10', trend: 'Active outreach' },
-    { name: 'Campaigns Total', value: stats.active_campaigns, icon: Megaphone, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: 'Orchestration active' },
+    { name: 'Messages Sent', value: stats.messages_sent, icon: Zap, color: 'text-amber-500', bg: 'bg-amber-500/10', trend: 'Active outreach' },
+    { name: 'Active Campaigns', value: stats.active_campaigns, icon: Megaphone, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: 'Orchestration active' },
   ];
 
 
@@ -116,13 +136,25 @@ export default function DashboardOverview() {
                       </div>
                       <h2 className="text-lg font-black uppercase tracking-tight italic">Live Activity Stream</h2>
                    </div>
-                   <button className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b-2 border-primary/20 hover:border-primary transition-all pb-1">Export Telemetry</button>
+                   <button onClick={handleExportTelemetry} className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b-2 border-primary/20 hover:border-primary transition-all pb-1">Export Telemetry</button>
                 </div>
                 
                 {/* Visual Chart Placeholder */}
-                <div className="h-64 bg-black/20 rounded-2xl border border-white/10 border-dashed flex items-center justify-center relative group">
-                   <TrendingUp className="w-12 h-12 text-slate-200 dark:text-slate-700 group-hover:scale-125 transition-transform" />
-                   <p className="absolute bottom-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.5em]">Real-time Throughput Graph</p>
+                <div className="h-64 bg-black/20 rounded-2xl border border-white/10 border-dashed overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent flex flex-col relative group">
+                   {logs.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-slate-500 opacity-50 absolute inset-0">
+                         <TrendingUp className="w-12 h-12 mb-3" />
+                         <p className="text-[10px] font-black uppercase tracking-[0.5em]">No recent activity</p>
+                      </div>
+                   ) : (
+                      logs.map((log: any) => (
+                         <div key={log.id} className="text-xs flex items-start gap-3 p-3 bg-black/40 rounded-lg border border-white/5 relative z-10 w-full">
+                            <span className="text-slate-500 font-mono flex-shrink-0">{new Date(log.created_at).toLocaleTimeString()}</span>
+                            <span className={`font-mono flex-shrink-0 ${log.level === 'ERROR' ? 'text-red-400' : 'text-primary'}`}>[{log.level}]</span>
+                            <span className="text-slate-300 break-words">{log.message}</span>
+                         </div>
+                      ))
+                   )}
                 </div>
               </div>
 
@@ -162,25 +194,25 @@ export default function DashboardOverview() {
                  </div>
                  
                  <div className="space-y-6">
-                    <div className="space-y-2">
-                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          <span>Daily Send Limit</span>
-                          <span>30 / 100</span>
-                       </div>
-                       <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full w-[30%] bg-primary rounded-full" />
-                       </div>
-                    </div>
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                           <span>Daily Send Limit</span>
+                           <span>{stats.messages_sent} / 100</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                           <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (stats.messages_sent / 100) * 100)}%` }} />
+                        </div>
+                     </div>
 
-                    <div className="space-y-2">
-                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          <span>Group Join Limit</span>
-                          <span>2 / 15</span>
-                       </div>
-                       <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full w-[15%] bg-blue-500 rounded-full" />
-                       </div>
-                    </div>
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                           <span>Group Join Limit</span>
+                           <span>{stats.joined_groups} / 15</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                           <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (stats.joined_groups / 15) * 100)}%` }} />
+                        </div>
+                     </div>
                  </div>
 
                  <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/10">
@@ -194,18 +226,18 @@ export default function DashboardOverview() {
               <div className="glass-card p-8 rounded-[2rem]">
                  <h2 className="text-sm font-black uppercase tracking-widest italic mb-6">Commander Center</h2>
                  <div className="space-y-3">
-                    <button className="w-full py-3.5 bg-primary text-white text-[10px] font-black rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+                    <Link href="/dashboard/campaigns" className="w-full py-3.5 bg-primary text-white text-[10px] font-black rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
                        <Megaphone className="w-4 h-4" />
                        New Campaign
-                    </button>
-                    <button className="w-full py-3.5 bg-slate-100 dark:bg-slate-800 text-foreground text-[10px] font-black rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+                    </Link>
+                    <Link href="/dashboard/scraper" className="w-full py-3.5 bg-slate-100 dark:bg-slate-800 text-foreground text-[10px] font-black rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
                        <Search className="w-4 h-4 text-slate-400" />
                        Search Groups
-                    </button>
-                    <button className="w-full py-3.5 border border-border text-[10px] font-black rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+                    </Link>
+                    <Link href="/dashboard/templates" className="w-full py-3.5 border border-border text-[10px] font-black rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
                        <MessageSquare className="w-4 h-4 text-slate-400" />
                        Open Templates
-                    </button>
+                    </Link>
                  </div>
               </div>
            </div>

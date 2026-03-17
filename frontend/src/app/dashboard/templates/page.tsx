@@ -61,25 +61,33 @@ export default function TemplatesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="glass-card p-8 rounded-[2rem] space-y-5 h-fit">
              <h3 className="text-lg font-black uppercase tracking-tight italic">New Template</h3>
-             <input 
-               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
-               placeholder="Template Name"
-               value={name}
-               onChange={(e) => setName(e.target.value)}
-             />
-             <textarea 
-               className="w-full h-48 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-sans text-sm resize-none"
-               placeholder="Hi {name}, I saw you in {group}..."
-               value={content}
-               onChange={(e) => setContent(e.target.value)}
-             ></textarea>
-             <button onClick={handleCreate} disabled={loading} className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:shadow-lg hover:shadow-primary/25 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-               {loading ? (
-                 <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-               ) : (
-                 <>Save Template</>
-               )}
-             </button>
+             <div className="space-y-4">
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Template Identifier</label>
+                 <input 
+                   className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-mono text-sm text-foreground"
+                   placeholder="e.g. WELCOME_SEQUENCE"
+                   value={name}
+                   onChange={(e) => setName(e.target.value)}
+                 />
+               </div>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Neural Payload</label>
+                 <textarea 
+                   className="w-full h-48 px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-sans text-sm resize-none text-foreground"
+                   placeholder="Hi {first_name}, I saw you in {group}..."
+                   value={content}
+                   onChange={(e) => setContent(e.target.value)}
+                 ></textarea>
+               </div>
+               <button onClick={handleCreate} disabled={loading} className="w-full py-5 bg-foreground text-background font-black rounded-2xl hover:shadow-2xl hover:scale-[1.02] transition-all text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 border border-white/5">
+                 {loading ? (
+                   <div className="w-5 h-5 border-2 border-background/20 border-t-background rounded-full animate-spin" />
+                 ) : (
+                   <>Save Protocol Template</>
+                 )}
+               </button>
+             </div>
           </div>
 
           <div className="space-y-4 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">

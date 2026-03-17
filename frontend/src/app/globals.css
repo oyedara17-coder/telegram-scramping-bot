@@ -115,15 +115,54 @@
 
 /* Input fields - dark */
 input, textarea, select {
-  background: rgba(255,255,255,0.05) !important;
+  background-color: #020617 !important;
   color: #F1F5F9 !important;
   border-color: rgba(255,255,255,0.1) !important;
 }
+
+/* Force dropdown options to be dark and readable — critical for dark themes */
+select,
+select * {
+  background-color: #020617 !important;
+  color: #F1F5F9 !important;
+}
+
+select option {
+  background-color: #020617 !important;
+  color: #F1F5F9 !important;
+  padding: 8px 12px;
+}
+
+select option:hover,
+select option:checked {
+  background-color: #1e293b !important;
+  color: #FFFFFF !important;
+}
+
+select::-ms-expand {
+  background-color: #020617 !important;
+}
+
 input::placeholder, textarea::placeholder {
   color: #475569 !important;
 }
-input:focus, textarea:focus {
+
+input:focus, textarea:focus, select:focus {
   border-color: rgba(59,130,246,0.5) !important;
   outline: none;
   box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
 }
+
+/* Premium Avatar System */
+.premium-avatar {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+  color: white;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.premium-avatar-emerald { background: linear-gradient(135deg, #10B981, #059669); }
+.premium-avatar-violet { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+.premium-avatar-amber { background: linear-gradient(135deg, #F59E0B, #D97706); }
+.premium-avatar-rose { background: linear-gradient(135deg, #F43F5E, #E11D48); }

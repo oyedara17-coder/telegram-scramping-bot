@@ -97,9 +97,20 @@ async def get_stats(db: Session = Depends(get_db), current_user: models.User = D
     ).count()
     total_leads = db.query(models.Lead).filter(models.Lead.user_id == current_user.id).count()
     
+    messages_sent = db.query(models.Log).filter(
+        models.Log.user_id == current_user.id,
+        models.Log.message.like("Sent message%")
+    ).count()
+    
     return {
         "joined_groups": joined_groups_count,
         "active_campaigns": active_campaigns,
-        "total_leads": total_leads
+        "total_leads": total_leads,
+        "messages_sent": messages_sent
     }
+
+@router.get("/logs")
+async def get_logs(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logs = db.query(models.Log).filter(models.Log.user_id == current_user.id).order_by(models.Log.created_at.desc()).limit(20).all()
+    return [{"id": l.id, "level": l.level, "message": l.message, "created_at": l.created_at} for l in logs]
 

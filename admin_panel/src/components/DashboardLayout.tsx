@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <div className="mt-8 px-4 py-2 bg-slate-900/50 border border-white/10 rounded-lg flex items-center gap-2 backdrop-blur-sm">
+          <div className="mt-8 px-4 py-2 bg-slate-950 border border-white/10 rounded-lg flex items-center gap-2 backdrop-blur-sm shadow-inner">
              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Node Status: Active</span>
           </div>

@@ -98,11 +98,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }}
       >
         {/* Logo */}
-        <div className="h-20 flex items-center px-5 gap-3" style={{ borderBottom: '1px solid rgba(59,130,246,0.12)' }}>
-          <div className="min-w-[44px] h-11 rounded-xl overflow-hidden flex items-center justify-center"
-            style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
-            <div className="w-8 h-8 relative">
-              <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+        <div className="h-24 flex items-center px-5 gap-3 mb-2" style={{ borderBottom: '1px solid rgba(59,130,246,0.15)' }}>
+          <div className="min-w-[48px] h-12 rounded-2xl overflow-hidden flex items-center justify-center shadow-lg shadow-blue-500/10"
+            style={{ background: 'rgba(59,130,246,0.25)', border: '1px solid rgba(59,130,246,0.4)' }}>
+            <div className="w-9 h-9 relative">
+              <Image src="/logo.png" alt="Logo" fill className="object-contain" priority />
             </div>
           </div>
           {(isSidebarOpen || isMobileOpen) && (
@@ -210,9 +210,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="text-xs font-black text-white uppercase tracking-wider">Admin Node</span>
                 <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#10B981' }}>Verified</span>
               </div>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
-                <User className="w-5 h-5" style={{ color: '#60A5FA' }} />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center premium-avatar border border-white/10 shadow-lg shadow-primary/20 transition-all hover:scale-110 cursor-pointer">
+                <span className="text-xs">A</span>
               </div>
             </div>
           </div>

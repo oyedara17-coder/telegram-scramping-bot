@@ -9,16 +9,21 @@ import { Search, Globe, Users, Zap, ExternalLink } from 'lucide-react';
 export default function GroupsPage() {
   const router = useRouter();
   const [keyword, setKeyword] = useState('');
+  const [country, setCountry] = useState('');
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
 
-  const handleSearch = () => fetchGroups(keyword);
+  const handleSearch = () => fetchGroups(keyword, country);
 
-  const fetchGroups = async (k: string) => {
+  const fetchGroups = async (k: string, c: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/search_groups?keyword=${k}`, {
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/search_groups`);
+      url.searchParams.append('keyword', k);
+      if (c) url.searchParams.append('country', c);
+
+      const response = await fetch(url.toString(), {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
 
@@ -45,11 +50,48 @@ export default function GroupsPage() {
         <div className="bg-card p-6 rounded-[2rem] border border-border shadow-sm flex flex-col sm:flex-row gap-4">
           <input
             type="text"
-            placeholder="e.g. Crypto Traders, Marketing, London Real Estate"
-            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+            placeholder="Niche (e.g. Real Estate)"
+            className="flex-1 px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-bold text-xs"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
+          <select
+            className="flex-1 px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 transition-all font-bold text-xs uppercase"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+          >
+            <option value="">Global Network</option>
+            <option value="United States">United States</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Canada">Canada</option>
+            <option value="Germany">Germany</option>
+            <option value="India">India</option>
+            <option value="South Africa">South Africa</option>
+            <option value="Brazil">Brazil</option>
+            <option value="Russia">Russia</option>
+            <option value="Dubai">Dubai (UAE)</option>
+            <option value="Australia">Australia</option>
+            <option value="France">France</option>
+            <option value="Italy">Italy</option>
+            <option value="Spain">Spain</option>
+            <option value="China">China</option>
+            <option value="Japan">Japan</option>
+            <option value="South Korea">South Korea</option>
+            <option value="Mexico">Mexico</option>
+            <option value="Indonesia">Indonesia</option>
+            <option value="Turkey">Turkey</option>
+            <option value="Saudi Arabia">Saudi Arabia</option>
+            <option value="Netherlands">Netherlands</option>
+            <option value="Switzerland">Switzerland</option>
+            <option value="Sweden">Sweden</option>
+            <option value="Singapore">Singapore</option>
+            <option value="Malaysia">Malaysia</option>
+            <option value="Vietnam">Vietnam</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Egypt">Egypt</option>
+            <option value="Ghana">Ghana</option>
+          </select>
           <button
             onClick={handleSearch}
             disabled={loading}

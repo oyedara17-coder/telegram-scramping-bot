@@ -189,6 +189,26 @@ export default function ScraperPage() {
                   <option value="Brazil">Brazil</option>
                   <option value="Russia">Russia</option>
                   <option value="Dubai">Dubai (UAE)</option>
+                  <option value="Australia">Australia</option>
+                  <option value="France">France</option>
+                  <option value="Italy">Italy</option>
+                  <option value="Spain">Spain</option>
+                  <option value="China">China</option>
+                  <option value="Japan">Japan</option>
+                  <option value="South Korea">South Korea</option>
+                  <option value="Mexico">Mexico</option>
+                  <option value="Indonesia">Indonesia</option>
+                  <option value="Turkey">Turkey</option>
+                  <option value="Saudi Arabia">Saudi Arabia</option>
+                  <option value="Netherlands">Netherlands</option>
+                  <option value="Switzerland">Switzerland</option>
+                  <option value="Sweden">Sweden</option>
+                  <option value="Singapore">Singapore</option>
+                  <option value="Malaysia">Malaysia</option>
+                  <option value="Vietnam">Vietnam</option>
+                  <option value="Kenya">Kenya</option>
+                  <option value="Egypt">Egypt</option>
+                  <option value="Ghana">Ghana</option>
                 </select>
               </div>
               
@@ -279,7 +299,7 @@ export default function ScraperPage() {
                   {members.length === 0 && !loading ? (
                     <tr>
                       <td colSpan={3} className="px-6 py-24 text-center space-y-4">
-                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-border">
+                        <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-white/10">
                             <Users className="w-10 h-10 text-muted-foreground/30" />
                         </div>
                         <p className="text-muted-foreground font-black uppercase tracking-[0.3em] text-[10px]">Waiting for target Uplink...</p>
@@ -290,9 +310,17 @@ export default function ScraperPage() {
                       <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group/row">
                         <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-slate-50 dark:bg-slate-900 rounded-xl flex items-center justify-center text-xs font-black text-muted-foreground border border-border group-hover/row:border-primary/30 group-hover/row:text-primary transition-all">
-                                    {(m.first_name?.[0] || 'A').toUpperCase()}
-                                </div>
+                                {(() => {
+                                  const name = m.first_name || 'Anonymous';
+                                  const char = name[0].toUpperCase();
+                                  const colors = ['premium-avatar', 'premium-avatar-emerald', 'premium-avatar-violet', 'premium-avatar-amber', 'premium-avatar-rose'];
+                                  const colorClass = colors[char.charCodeAt(0) % colors.length];
+                                  return (
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs ${colorClass} border border-white/10 group-hover/row:scale-110 transition-all`}>
+                                        {char}
+                                    </div>
+                                  );
+                                })()}
                                 <div>
                                     <p className="text-sm font-black text-foreground uppercase italic leading-none">{m.first_name || 'Anonymous'} {m.last_name || ''}</p>
                                     <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest opacity-50">ID: {m.id}</p>
@@ -335,9 +363,9 @@ export default function ScraperPage() {
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
                   >
-                    <option value="">MANUAL OVERRIDE</option>
+                    <option className="bg-slate-900 text-slate-200" value="">MANUAL OVERRIDE</option>
                     {templates.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                        <option className="bg-slate-900 text-slate-200" key={t.id} value={t.id}>{t.name}</option>
                     ))}
                   </select>
                 </div>

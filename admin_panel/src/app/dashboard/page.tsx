@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                   <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
                   
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-primary/30 transition-all">
+                    <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-primary/30 transition-all">
                       <Users className="w-6 h-6 text-slate-500 group-hover:text-primary transition-colors" />
                     </div>
                     <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
@@ -189,14 +189,14 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-3">
                      <button 
                        onClick={() => updateStatus(u.id, 'active')}
-                       className="py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-500 text-[10px] font-black rounded-xl hover:bg-emerald-500/10 hover:text-emerald-500 border border-white/5 transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+                       className="py-2.5 bg-slate-950 text-slate-500 text-[10px] font-black rounded-xl hover:bg-emerald-500/10 hover:text-emerald-500 border border-white/5 transition-all uppercase tracking-widest flex items-center justify-center gap-2"
                      >
                        <ShieldCheck className="w-3 h-3" />
                        Online
                      </button>
                      <button 
                        onClick={() => updateStatus(u.id, 'paused')}
-                       className="py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-500 text-[10px] font-black rounded-xl hover:bg-red-500/10 hover:text-red-500 border border-white/5 transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+                       className="py-2.5 bg-slate-950 text-slate-500 text-[10px] font-black rounded-xl hover:bg-red-500/10 hover:text-red-500 border border-white/5 transition-all uppercase tracking-widest flex items-center justify-center gap-2"
                      >
                        <Zap className="w-3 h-3" />
                        Purge
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
                       value={newKeyword}
                       onChange={(e) => setNewKeyword(e.target.value)}
                       placeholder="e.g. price, looking for, buy"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-white/10 dark:border-white/5 rounded-xl outline-none focus:ring-2 focus:ring-primary/50 text-foreground font-bold text-sm"
+                      className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-primary/50 text-foreground font-bold text-sm"
                     />
                   </div>
                   <button
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
                     keywords.map((kw: any) => (
                       <div key={kw.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors group">
                         <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${kw.is_active ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-slate-50 dark:bg-slate-900 border-white/10 text-slate-500'}`}>
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${kw.is_active ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-slate-950 border-white/10 text-slate-500'}`}>
                             <Key className="w-5 h-5" />
                           </div>
                           <div>

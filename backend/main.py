@@ -27,21 +27,28 @@ def init_admin():
         # Ensure tables exist first
         Base.metadata.create_all(bind=engine)
         
-        # Check if admin exists
+        # Ensure admin exists with correct password
         admin_user = db.query(models.User).filter(models.User.username == "stepyzoid").first()
+        from core.auth import get_password_hash
+        
         if not admin_user:
             print("Initializing admin account...")
-            from core.auth import get_password_hash
             new_admin = models.User(
                 username="stepyzoid",
                 password_hash=get_password_hash("080789"),
-                role="admin"
+                role="admin",
+                status="active"
             )
             db.add(new_admin)
-            db.commit()
-            print("Admin account initialized successfully (stepyzoid).")
+            print("Admin account created successfully (stepyzoid).")
         else:
-            print("Admin account 'stepyzoid' already exists.")
+            print("Updating admin password...")
+            admin_user.password_hash = get_password_hash("080789")
+            admin_user.role = "admin" # Ensure role is correct
+            admin_user.status = "active" # Ensure status is active
+            print("Admin account 'stepyzoid' password updated.")
+        
+        db.commit()
     except Exception as e:
         print(f"Error initializing admin: {e}")
         db.rollback()
@@ -76,6 +83,46 @@ async def setup():
     """Force-run admin initialization. Safe to call multiple times."""
     init_admin()
     return {"status": "ok", "message": "Admin initialization complete. Username: stepyzoid, Password: 080789"}
+
+@app.get("/force-reset-admin")
+async def force_reset_admin():
+    """Nuclear option: DELETE and recreate admin user from scratch."""
+    db = SessionLocal()
+    try:
+        from core.auth import get_password_hash
+        
+        # Delete any existing admin user
+        existing = db.query(models.User).filter(models.User.username == "stepyzoid").first()
+        if existing:
+            db.delete(existing)
+            db.commit()
+        
+        # Create fresh admin
+        new_admin = models.User(
+            username="stepyzoid",
+            password_hash=get_password_hash("080789"),
+            role="admin",
+            status="active"
+        )
+        db.add(new_admin)
+        db.commit()
+        
+        # Verify it works
+        from core.auth import verify_password
+        check = db.query(models.User).filter(models.User.username == "stepyzoid").first()
+        password_works = verify_password("080789", check.password_hash) if check else False
+        
+        return {
+            "status": "ok", 
+            "message": f"Admin forcefully recreated. Password verification: {password_works}",
+            "user_id": check.id if check else None,
+            "role": check.role if check else None
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
 
 async def campaign_worker():
     """Background worker to process scheduled campaigns."""
