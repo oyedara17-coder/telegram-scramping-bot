@@ -11,10 +11,13 @@ export default function AccountsPage() {
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [step, setStep] = useState(1);
-  const [phoneCodeHash, setPhoneCodeHash] = useState('');
+  const [phone_code_hash, setPhoneCodeHash] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     fetchAccounts();
   }, []);
 
@@ -58,7 +61,7 @@ export default function AccountsPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ phone, code, phone_code_hash: phoneCodeHash, password }),
+        body: JSON.stringify({ phone, code, phone_code_hash, password }),
       });
       if (response.ok) {
         setStep(1);
@@ -72,6 +75,8 @@ export default function AccountsPage() {
       setLoading(false);
     }
   };
+
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 
   return (
     <DashboardLayout>
@@ -96,7 +101,7 @@ export default function AccountsPage() {
                     <input
                       type="text"
                       placeholder="+1 234 567 8900"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                      className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                     />
@@ -120,7 +125,7 @@ export default function AccountsPage() {
                     <input
                       type="text"
                       placeholder="Enter 5-digit code"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-center tracking-[0.5em] text-lg"
+                      className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-center tracking-[0.5em] text-lg"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                     />
@@ -130,7 +135,7 @@ export default function AccountsPage() {
                     <input
                       type="password"
                       placeholder="••••••••"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -156,7 +161,7 @@ export default function AccountsPage() {
           <div className="lg:col-span-2 glass-card rounded-[2rem] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-border text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                <thead className="bg-slate-950/50 border-b border-white/10 text-[10px] text-slate-500 uppercase font-black tracking-widest">
                   <tr>
                     <th className="px-6 py-5">Phone Node</th>
                     <th className="px-6 py-5 hidden sm:table-cell">Session Link</th>
@@ -173,7 +178,7 @@ export default function AccountsPage() {
                     </tr>
                   ) : (
                     accounts.map((acc: any) => (
-                      <tr key={acc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                      <tr key={acc.id} className="hover:bg-primary/5 transition-colors group">
                         <td className="px-6 py-5 font-black text-foreground italic">{acc.phone}</td>
                         <td className="px-6 py-5 text-[10px] text-muted-foreground font-mono hidden sm:table-cell">
                           {acc.session_name.substring(0, 12)}...
