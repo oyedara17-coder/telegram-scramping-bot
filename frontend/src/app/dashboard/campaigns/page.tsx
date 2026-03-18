@@ -14,8 +14,10 @@ export default function CampaignsPage() {
   const [groupId, setGroupId] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchCampaigns();
     fetchTemplates();
     fetchGroups();
@@ -85,6 +87,8 @@ export default function CampaignsPage() {
     }
   };
 
+
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 
   return (
     <DashboardLayout>

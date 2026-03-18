@@ -8,8 +8,10 @@ export default function TemplatesPage() {
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchTemplates();
   }, []);
 
@@ -45,6 +47,8 @@ export default function TemplatesPage() {
       setLoading(false);
     }
   };
+
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 
   return (
     <DashboardLayout>
