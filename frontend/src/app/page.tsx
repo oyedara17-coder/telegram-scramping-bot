@@ -9,13 +9,23 @@ import { Zap, Users, ShieldCheck, ArrowRight, Lock, Activity } from 'lucide-reac
 export default function RootPage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
+    setMounted(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setIsLoggedIn(true);
+      }
+    } catch (err) {
+      console.warn('LocalStorage access blocked or failed:', err);
     }
   }, []);
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-slate-950" />; // Simple placeholder to avoid hydration mismatch
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-white font-sans relative overflow-hidden">

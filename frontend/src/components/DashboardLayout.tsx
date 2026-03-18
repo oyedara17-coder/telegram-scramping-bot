@@ -34,26 +34,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     setMounted(true);
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token && pathname && !pathname.includes('/login')) {
-      router.push('/login');
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!token && pathname && !pathname.includes('/login')) {
+        router.push('/login');
+      }
+    } catch (err) {
+      console.warn('LocalStorage access blocked in DashboardLayout:', err);
     }
   }, [pathname, router]);
 
   useEffect(() => {
+    if (!mounted) return;
     const handleResize = () => {
       if (window.innerWidth < 1024) setIsSidebarOpen(false);
       else setIsSidebarOpen(true);
     };
     window.addEventListener('resize', handleResize);
-    // Only call handleResize after mount to prevent hydration mismatch
-    if (mounted) {
-      handleResize();
-    }
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, [mounted]);
 
-  useEffect(() => { setIsMobileOpen(false); }, [pathname]);
+  // Use a ref or simple logic to reset mobile sidebar on navigation
+  useEffect(() => { 
+    if (mounted) {
+      setIsMobileOpen(false); 
+    }
+  }, [pathname, mounted]);
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
