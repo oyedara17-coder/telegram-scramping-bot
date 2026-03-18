@@ -11,8 +11,10 @@ export default function AdminDashboard() {
   const [newKeyword, setNewKeyword] = useState('');
   const [loading, setLoading] = useState(true);
   const [keywordLoading, setKeywordLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchUsers();
     fetchKeywords();
   }, []);
@@ -97,6 +99,8 @@ export default function AdminDashboard() {
       fetchKeywords();
     } catch (err) {}
   };
+
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 
   return (
     <DashboardLayout>

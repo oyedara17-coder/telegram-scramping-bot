@@ -11,6 +11,11 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +53,8 @@ export default function AdminLoginPage() {
       setLoading(false);
     }
   };
+
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 font-mono relative overflow-hidden">
