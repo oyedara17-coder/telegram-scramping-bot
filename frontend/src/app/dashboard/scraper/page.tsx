@@ -23,8 +23,10 @@ export default function ScraperPage() {
   const [sending, setSending] = useState(false);
   const [sendProgress, setSendProgress] = useState(0);
   const [outreachStatus, setOutreachStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchTemplates();
   }, []);
 
@@ -129,9 +131,10 @@ export default function ScraperPage() {
         }
     }
 
-    setSending(false);
     setOutreachStatus('completed');
   };
+
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 
   return (
     <DashboardLayout>
@@ -169,12 +172,12 @@ export default function ScraperPage() {
                 <input
                   type="text"
                   placeholder="Niche (e.g. Real Estate)"
-                  className="px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
+                  className="px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
                 <select
-                  className="px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs uppercase"
+                  className="px-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs uppercase"
                   value={searchCountry}
                   onChange={(e) => setSearchCountry(e.target.value)}
                 >
@@ -224,7 +227,7 @@ export default function ScraperPage() {
             {searchResults.length > 0 && (
               <div className="space-y-3 mt-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {searchResults.map((group, idx) => (
-                  <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-border rounded-2xl flex items-center justify-between group/item hover:border-primary/50 transition-all">
+                  <div key={idx} className="p-4 bg-slate-950 border border-white/10 rounded-2xl flex items-center justify-between group/item hover:border-primary/50 transition-all">
                     <div>
                       <p className="text-sm font-black text-foreground uppercase italic leading-none">{group.title}</p>
                       <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest">@{group.username || group.id} • {group.participantsCount} Users</p>
@@ -254,7 +257,7 @@ export default function ScraperPage() {
               <input
                 type="text"
                 placeholder="Enter Group Username or ID"
-                className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl outline-none focus:border-primary transition-all font-bold text-foreground"
+                className="w-full px-6 py-4 bg-slate-950 border border-white/10 rounded-2xl outline-none focus:border-primary transition-all font-bold text-foreground"
                 value={groupId}
                 onChange={(e) => setGroupId(e.target.value)}
               />
@@ -426,7 +429,7 @@ export default function ScraperPage() {
                   )}
                 </button>
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border group-hover:border-primary/20 transition-all">
+                <div className="p-4 bg-slate-950 rounded-2xl border border-white/10 group-hover:border-primary/20 transition-all">
                     <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="w-3 h-3 text-amber-500" />
                         <span className="text-[9px] font-black text-amber-500/70 uppercase tracking-widest">Safety Compliance</span>

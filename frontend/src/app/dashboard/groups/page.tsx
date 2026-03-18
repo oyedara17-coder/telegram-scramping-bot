@@ -12,6 +12,11 @@ export default function GroupsPage() {
   const [country, setCountry] = useState('');
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
   const handleSearch = () => fetchGroups(keyword, country);
@@ -36,6 +41,8 @@ export default function GroupsPage() {
     }
   };
 
+  if (!mounted) return <div className="min-h-screen bg-slate-950" />;
+
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-6xl mx-auto">
@@ -47,7 +54,7 @@ export default function GroupsPage() {
         </div>
 
 
-        <div className="bg-card p-6 rounded-[2rem] border border-border shadow-sm flex flex-col sm:flex-row gap-4">
+        <div className="glass-card p-6 rounded-[2rem] border border-white/10 shadow-sm flex flex-col sm:flex-row gap-4">
           <input
             type="text"
             placeholder="Niche (e.g. Real Estate)"
@@ -113,7 +120,7 @@ export default function GroupsPage() {
             </div>
           ) : (
             groups.map((group: any) => (
-              <div key={group.id} className="bg-card p-8 rounded-[2rem] border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
+              <div key={group.id} className="glass-card p-8 rounded-[2rem] border border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-2xl font-black text-primary italic">
                     {group.title?.[0]}
