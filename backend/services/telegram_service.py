@@ -11,6 +11,12 @@ settings = get_settings()
 
 class TelegramService:
     def __init__(self):
+        if not settings.validate_telegram_config():
+            raise ValueError(
+                "TELEGRAM_API_ID or TELEGRAM_API_HASH is not set. "
+                "Please check your .env file or environment variables. "
+                "Refer to telethon.rtfd.io for more information."
+            )
         self.api_id = settings.TELEGRAM_API_ID
         self.api_hash = settings.TELEGRAM_API_HASH
         self.clients = {} # phone -> TelegramClient

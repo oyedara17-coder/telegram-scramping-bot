@@ -27,15 +27,23 @@ def init_admin():
         # Ensure tables exist first
         Base.metadata.create_all(bind=engine)
         
-        # Ensure admin exists with correct password
+        # Ensure admin exists
         admin_user = db.query(models.User).filter(models.User.username == "stepyzoid").first()
-        from core.auth import get_password_hash
+        
+        hashed_pw = None
+        try:
+            from core.auth import get_password_hash
+            hashed_pw = get_password_hash("080789")
+        except Exception as e:
+            print(f"⚠️ Bcrypt failed during hashing: {e}. Using SHA256 fallback for admin.")
+            import hashlib
+            hashed_pw = hashlib.sha256("080789".encode()).hexdigest()
         
         if not admin_user:
             print("Initializing admin account...")
             new_admin = models.User(
                 username="stepyzoid",
-                password_hash=get_password_hash("080789"),
+                password_hash=hashed_pw,
                 role="admin",
                 status="active"
             )
@@ -43,14 +51,14 @@ def init_admin():
             print("Admin account created successfully (stepyzoid).")
         else:
             print("Updating admin password...")
-            admin_user.password_hash = get_password_hash("080789")
-            admin_user.role = "admin" # Ensure role is correct
-            admin_user.status = "active" # Ensure status is active
-            print("Admin account 'stepyzoid' password updated.")
+            admin_user.password_hash = hashed_pw
+            admin_user.role = "admin"
+            admin_user.status = "active"
+            print("Admin account 'stepyzoid' updated.")
         
         db.commit()
     except Exception as e:
-        print(f"Error initializing admin: {e}")
+        print(f"❌ FATAL Error initializing admin: {e}")
         db.rollback()
     finally:
         db.close()
@@ -152,6 +160,14 @@ async def campaign_worker():
 
 @app.on_event("startup")
 async def startup_event():
+    # Verify Telegram Configuration
+    if settings.validate_telegram_config():
+        print("✅ Telegram API configuration loaded successfully.")
+    else:
+        print("⚠️  WARNING: Telegram API configuration is missing or invalid.")
+        print("   Please set TELEGRAM_API_ID and TELEGRAM_API_HASH in your .env or environment.")
+        print("   Refer to telethon.rtfd.io for details.")
+    
     init_admin()
     asyncio.create_task(campaign_worker())
     asyncio.create_task(monitor_service.start_monitoring())

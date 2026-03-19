@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Search, Globe, Users, Zap, ExternalLink } from 'lucide-react';
@@ -32,10 +32,17 @@ export default function GroupsPage() {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Search failed');
+      }
+
       const data = await response.json();
-      setGroups(data);
-    } catch (err) {
-      alert('Search failed. Ensure your Telegram account is connected.');
+      setGroups(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Search error:', err);
+      alert(err.message || 'Search failed. Ensure your Telegram account is connected.');
+      setGroups([]);
     } finally {
       setLoading(false);
     }

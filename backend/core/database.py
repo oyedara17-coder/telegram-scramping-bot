@@ -20,10 +20,13 @@ if is_libsql:
         if db_url.startswith("libsql://"):
             db_url = db_url.replace("libsql://", "sqlite+libsql://", 1)
         if token:
+            print(f"INFO: LibSQL token detected (length: {len(token)} characters).")
             encoded = quote(token, safe="")
             sep = "&" if "?" in db_url else "?"
             db_url = f"{db_url}{sep}authToken={encoded}"
             print(f"INFO: Using LibSQL/Turso with auth token.")
+        else:
+            print(f"WARNING: LibSQL/Turso URL was detected, but NO LIBSQL_AUTH_TOKEN was found in environment.")
         engine = create_engine(db_url)
         # Test connection to validate
         with engine.connect() as conn:

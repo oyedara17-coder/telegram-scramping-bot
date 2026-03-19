@@ -35,10 +35,12 @@ export default function ScraperPage() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/campaigns/templates`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      if (!response.ok) throw new Error('Failed to fetch templates');
       const data = await response.json();
-      setTemplates(data || []);
+      setTemplates(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch templates');
+      console.error('Failed to fetch templates:', err);
+      setTemplates([]);
     }
   };
 
@@ -53,10 +55,17 @@ export default function ScraperPage() {
       const response = await fetch(url.toString(), {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      
+      if (!response.ok) {
+         const errData = await response.json().catch(() => ({}));
+         throw new Error(errData.detail || 'Search failed');
+      }
+
       const data = await response.json();
-      setSearchResults(data || []);
-    } catch (err) {
-      console.error('Search failed');
+      setSearchResults(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Search error:', err);
+      setSearchResults([]);
     } finally {
       setSearching(false);
     }
@@ -76,11 +85,18 @@ export default function ScraperPage() {
         },
         body: JSON.stringify({ group_id: idToScrape }),
       });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Scraping failed');
+      }
+
       const data = await response.json();
-      setMembers(data);
+      setMembers(Array.isArray(data) ? data : []);
       if (overrideId) setGroupId(overrideId);
-    } catch (err) {
-      alert('Scraping failed. Ensure the account is a member of the group.');
+    } catch (err: any) {
+      alert(err.message || 'Scraping failed. Ensure the account is a member of the group.');
+      setMembers([]);
     } finally {
       setLoading(false);
     }

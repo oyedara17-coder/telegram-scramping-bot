@@ -11,9 +11,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def verify_password(plain_password, hashed_password):
     try:
         return pwd_context.verify(plain_password, hashed_password)
-    except:
+    except Exception as e:
         import hashlib
-        return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
+        # Fallback for simple SHA256 (used in emergency migrations or bcrypt failures)
+        current_hash = hashlib.sha256(plain_password.encode()).hexdigest()
+        return current_hash == hashed_password
 
 def get_password_hash(password):
     return pwd_context.hash(password)
