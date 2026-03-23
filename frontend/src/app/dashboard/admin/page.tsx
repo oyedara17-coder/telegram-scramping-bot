@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ShieldAlert, Zap, Cpu, Users, Eye } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 export default function AdminPage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,11 +15,11 @@ export default function AdminPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/users`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await response.json();
-      setUsers(data);
+      const response = await apiFetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -28,12 +29,8 @@ export default function AdminPage() {
 
   const updateStatus = async (userId: number, status: string) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/users/${userId}`, {
+      await apiFetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify({ status }),
       });
       fetchUsers();

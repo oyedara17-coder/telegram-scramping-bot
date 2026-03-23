@@ -6,13 +6,16 @@ import random
 from datetime import datetime
 
 class MessagingService:
-    async def run_campaign(self, campaign_id: int, db: Session):
-        campaign: models.Campaign = db.query(models.Campaign).filter(models.Campaign.id == campaign_id).first()
-        if not campaign or campaign.status != "pending":
-            return
-
-        campaign.status = "running"
-        db.commit()
+    async def run_campaign(self, campaign_id: int):
+        from core.database import SessionLocal
+        db = SessionLocal()
+        try:
+            campaign: models.Campaign = db.query(models.Campaign).filter(models.Campaign.id == campaign_id).first()
+            if not campaign or campaign.status != "pending":
+                return
+    
+            campaign.status = "running"
+            db.commit()
 
         try:
             # Get template and target users (scraped users)
@@ -35,7 +38,9 @@ class MessagingService:
             client = await telegram_service.get_client(account.phone, account.session_name)
             
             for user in users:
-                if campaign.status != "running": # Handle pause
+                db.refresh(campaign)
+                if campaign.status != "running": # Handle pause/terminate
+                    print(f"DEBUG: Campaign {campaign_id} interrupted (status: {campaign.status})")
                     break
                 
                 try:
@@ -63,7 +68,10 @@ class MessagingService:
             db.commit()
             
         except Exception as e:
+            print(f"DEBUG: Campaign {campaign_id} failed: {str(e)}")
             campaign.status = "failed"
             db.commit()
+        finally:
+            db.close()
 
 messaging_service = MessagingService()

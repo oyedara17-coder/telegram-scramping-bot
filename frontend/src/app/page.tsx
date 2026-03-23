@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Zap, Users, ShieldCheck, ArrowRight, Lock, Activity } from 'lucide-react';
@@ -95,16 +95,17 @@ export default function RootPage() {
         {/* Feature Grid - Fixed to avoid layout shifts */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full mt-24">
           {[
-            { icon: <Zap className="w-6 h-6 text-blue-400" />, title: "Scraping" },
-            { icon: <Users className="w-6 h-6 text-indigo-400" />, title: "Campaigns" },
-            { icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />, title: "Security" }
+            { icon: <Zap className="w-6 h-6 text-blue-400" />, title: "Scraping", href: "/dashboard/scraper" },
+            { icon: <Users className="w-6 h-6 text-indigo-400" />, title: "Campaigns", href: "/dashboard/campaigns" },
+            { icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />, title: "Security", href: "/dashboard/settings" }
           ].map((feature, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 backdrop-blur-sm p-8 rounded-3xl text-left space-y-4 hover:border-blue-600/30 transition-all">
+            <Link key={i} href={isLoggedIn ? feature.href : "/login"} className="bg-white/5 border border-white/10 backdrop-blur-sm p-8 rounded-3xl text-left space-y-4 hover:border-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
               <div className="w-12 h-12 rounded-2xl bg-black/50 flex items-center justify-center">
                 {feature.icon}
               </div>
               <h3 className="text-lg font-black uppercase tracking-tight italic text-white font-heading">{feature.title}</h3>
-            </div>
+              <p className="text-xs text-slate-500 font-medium">Access your isolated {feature.title.toLowerCase()} node environment.</p>
+            </Link>
           ))}
         </div>
       </main>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Users, Send, MessageSquare, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 export default function JoinedGroupsPage() {
   const [groups, setGroups] = useState([]);
@@ -22,13 +23,12 @@ export default function JoinedGroupsPage() {
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/joined-groups`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await apiFetch('/api/telegram/joined-groups');
       if (!response.ok) throw new Error('Failed to fetch groups');
       const data = await response.json();
       setGroups(data);
     } catch (err: any) {
+      if (err.message === 'Unauthorized') return;
       setError(err.message);
     } finally {
       setLoading(false);
@@ -44,12 +44,8 @@ export default function JoinedGroupsPage() {
     setSuccess(false);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/send-message`, {
+      const response = await apiFetch('/api/telegram/send-message', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify({
           target_id: selectedGroup.id,
           message: message
@@ -63,8 +59,8 @@ export default function JoinedGroupsPage() {
 
       setSuccess(true);
       setMessage('');
-      setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
+      if (err.message === 'Unauthorized') return;
       setError(err.message);
     } finally {
       setSending(false);

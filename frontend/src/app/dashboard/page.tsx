@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { 
@@ -19,7 +19,7 @@ import {
   MessageSquare,
   Megaphone
 } from 'lucide-react';
-
+import { apiFetch } from '@/utils/api';
 
 export default function DashboardOverview() {
   const [stats, setStats] = useState({
@@ -35,10 +35,7 @@ export default function DashboardOverview() {
     setMounted(true);
     const fetchData = async () => {
       try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        const headers = { 'Authorization': `Bearer ${token}` };
-        
-        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/stats`, { headers });
+        const statsRes = await apiFetch('/api/telegram/stats');
         if (statsRes.ok) {
           const data = await statsRes.json();
           setStats({
@@ -49,7 +46,7 @@ export default function DashboardOverview() {
           });
         }
         
-        const logsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/logs`, { headers });
+        const logsRes = await apiFetch('/api/telegram/logs');
         if (logsRes.ok) {
            const logsData = await logsRes.json();
            setLogs(logsData);

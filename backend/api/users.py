@@ -44,6 +44,7 @@ class TelegramVerifyRequest(BaseModel):
     phone: str
     code: str
     phone_code_hash: str
+    password: Optional[str] = None
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     payload = decode_access_token(token)
@@ -125,32 +126,47 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+# No changes needed for verify, but let's check send-code
 @router.post("/auth/telegram/send-code")
 async def send_telegram_code(request: TelegramLoginRequest):
     try:
-        result = await telegram_service.send_code(request.phone)
+        # Normalize phone
+        phone = request.phone.strip()
+        if not phone.startswith('+'):
+            phone = '+' + phone
+            
+        print(f"DEBUG: Internal Auth - Sending code to {phone}")
+        result = await telegram_service.send_code(phone)
         return {"phone_code_hash": result.phone_code_hash}
     except Exception as e:
+        print(f"DEBUG: Internal Auth - Send code failed for {request.phone}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.post("/auth/telegram/verify", response_model=Token)
 async def verify_telegram_code(request: TelegramVerifyRequest, db: Session = Depends(get_db)):
     try:
+        # Normalize phone
+        phone = request.phone.strip()
+        if not phone.startswith('+'):
+            phone = '+' + phone
+            
+        print(f"DEBUG: Internal Auth - Verifying code for {phone}")
         user_data, session_str = await telegram_service.sign_in(
-            request.phone, 
+            phone, 
             request.phone_code_hash, 
-            request.code
+            request.code,
+            password=request.password
         )
         
         # Find or create user
         user = db.query(models.User).filter(models.User.telegram_id == user_data.id).first()
         if not user:
             # Check by phone as fallback
-            user = db.query(models.User).filter(models.User.phone == request.phone).first()
+            user = db.query(models.User).filter(models.User.phone == phone).first()
             if not user:
                 user = models.User(
                     telegram_id=user_data.id,
-                    phone=request.phone,
+                    phone=phone,
                     username=user_data.username or f"user_{user_data.id}",
                     role="user"
                 )
@@ -162,10 +178,10 @@ async def verify_telegram_code(request: TelegramVerifyRequest, db: Session = Dep
                 db.commit()
         
         # Link Telegram Account session
-        account = db.query(models.Account).filter(models.Account.phone == request.phone).first()
+        account = db.query(models.Account).filter(models.Account.phone == phone).first()
         if not account:
             account = models.Account(
-                phone=request.phone,
+                phone=phone,
                 api_id=settings.TELEGRAM_API_ID,
                 api_hash=settings.TELEGRAM_API_HASH,
                 session_name=session_str,
@@ -182,11 +198,16 @@ async def verify_telegram_code(request: TelegramVerifyRequest, db: Session = Dep
         return {"access_token": access_token, "token_type": "bearer", "role": user.role}
     except Exception as e:
         error_msg = str(e)
-        if "UNAUTHORIZED" in error_msg.upper() or "EMPTY JWT" in error_msg.upper():
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="System Authentication Error: The backend is unable to connect to the database. Please verify the LIBSQL_AUTH_TOKEN in your Hugging Face space secrets."
+        import traceback
+        traceback.print_exc()
+        
+        # Check if the error is likely a database connection issue (LibSQL/Turso)
+        if "LIBSQL" in error_msg.upper() or "SQLITE" in error_msg.upper() or "UNAUTHORIZED" in error_msg.upper() and "SIGN_IN" not in traceback.format_exc():
+             raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                detail="System Database Error: The backend is unable to connect to the persistent store. Please verify the DATABASE_URL and LIBSQL_AUTH_TOKEN in your environment/secrets."
             )
+            
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
 
 @router.get("/me", response_model=UserOut)

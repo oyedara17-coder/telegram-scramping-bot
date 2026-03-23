@@ -1,31 +1,55 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ShieldCheck, Command, Settings, Sliders, Bell, Database, Globe, Key, AlertTriangle } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const [openaiKey, setOpenaiKey] = useState('');
+  const [telegramId, setTelegramId] = useState('');
+  const [telegramHash, setTelegramHash] = useState('');
+
   useEffect(() => {
     setMounted(true);
+    const fetchSettings = async () => {
+      try {
+        const response = await apiFetch('/api/admin/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setOpenaiKey(data.openai_api_key || '');
+          setTelegramId(data.telegram_api_id || '');
+          setTelegramHash(data.telegram_api_hash || '');
+        }
+      } catch (err) {
+        console.error('Failed to fetch settings');
+      }
+    };
+    fetchSettings();
   }, []);
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/settings`, {
+      const response = await apiFetch('/api/admin/settings', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ mock: 'data' }),
+        body: JSON.stringify({
+          openai_api_key: openaiKey,
+          telegram_api_id: telegramId,
+          telegram_api_hash: telegramHash
+        })
       });
-      if (response.ok) alert('System configuration updated!');
+      
+      if (response.ok) {
+        alert("System configuration updated! (Restart might be required)");
+      } else {
+        alert("Failed to update settings");
+      }
     } catch (err) {
-      alert('Transmission failed. Check network link.');
+       alert("Error connecting to server");
     } finally {
       setLoading(false);
     }
@@ -81,6 +105,8 @@ export default function SettingsPage() {
                       type="password" 
                       placeholder="sk-neural-prot-..." 
                       className="w-full px-6 py-4 bg-slate-950 border border-white/10 rounded-2xl outline-none focus:border-primary/50 transition-all font-mono text-sm text-foreground shadow-inner" 
+                      value={openaiKey}
+                      onChange={(e) => setOpenaiKey(e.target.value)}
                     />
                   </div>
                   <div className="space-y-3">
@@ -89,6 +115,18 @@ export default function SettingsPage() {
                       type="text" 
                       placeholder="UPLINK_0987654" 
                       className="w-full px-6 py-4 bg-slate-950 border border-white/10 rounded-2xl outline-none focus:border-primary/50 transition-all font-mono text-sm text-foreground shadow-inner" 
+                      value={telegramId}
+                      onChange={(e) => setTelegramId(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">Telegram System API HASH</label>
+                    <input 
+                      type="password" 
+                      placeholder="e9876..." 
+                      className="w-full px-6 py-4 bg-slate-950 border border-white/10 rounded-2xl outline-none focus:border-primary/50 transition-all font-mono text-sm text-foreground shadow-inner" 
+                      value={telegramHash}
+                      onChange={(e) => setTelegramHash(e.target.value)}
                     />
                   </div>
                 </div>

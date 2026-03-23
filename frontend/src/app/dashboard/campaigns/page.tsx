@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Megaphone, Clock, Zap, Target, Activity } from 'lucide-react';
+import { Megaphone, Play, Pause, Trash2, Clock, CheckCircle2, AlertCircle, Plus, Square } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 
 export default function CampaignsPage() {
@@ -25,19 +26,17 @@ export default function CampaignsPage() {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/campaigns/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await response.json();
-      setCampaigns(data);
-    } catch (err) {}
+      const response = await apiFetch('/api/campaigns');
+      const data = await response.json().catch(() => []);
+      setCampaigns(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setCampaigns([]);
+    }
   };
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/campaigns/templates`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await apiFetch('/api/campaigns/templates');
       const data = await response.json();
       setTemplates(data || []);
     } catch (err) {}
@@ -45,12 +44,14 @@ export default function CampaignsPage() {
 
   const fetchGroups = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/joined-groups`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await apiFetch('/api/telegram/joined-groups');
       const data = await response.json();
       setGroups(data || []);
     } catch (err) {}
+  };
+
+  const fetchData = async () => {
+    await Promise.all([fetchCampaigns(), fetchTemplates(), fetchGroups()]);
   };
 
   const handleCreate = async () => {
@@ -60,12 +61,8 @@ export default function CampaignsPage() {
     }
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/campaigns/`, {
+      const response = await apiFetch('/api/campaigns', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify({ 
           name, 
           template_id: parseInt(templateId),
@@ -78,12 +75,33 @@ export default function CampaignsPage() {
         setTemplateId('');
         setGroupId('');
         setScheduleTime('');
-        fetchCampaigns();
+        fetchData();
       }
     } catch (err) {
       alert('Failed to create campaign');
     } finally {
       setLoading(false);
+    }
+  };
+
+
+  const handleTerminate = async (id: number) => {
+    if (!confirm('Terminate this campaign?')) return;
+    try {
+      const res = await apiFetch(`/api/campaigns/${id}/terminate`, { method: 'POST' });
+      if (res.ok) fetchData();
+    } catch (err) {
+      alert('Termination failed');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Delete this campaign record?')) return;
+    try {
+      const res = await apiFetch(`/api/campaigns/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchData();
+    } catch (err) {
+      alert('Deletion failed');
     }
   };
 
@@ -199,6 +217,7 @@ export default function CampaignsPage() {
                           <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-current ${
                             c.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)] border-emerald-500/20' : 
                             c.status === 'running' ? 'bg-primary/10 text-primary animate-pulse border-primary/20' : 
+                            c.status === 'terminated' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                             'bg-slate-500/10 text-slate-500 border-slate-500/20'
                           }`}>
                             {c.status}
@@ -207,15 +226,28 @@ export default function CampaignsPage() {
                         <td className="px-6 py-6">
                           <div className="flex items-center gap-3">
                             <div className="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/5 max-w-[120px]">
-                                <div className={`h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)] ${c.status === 'completed' ? 'bg-emerald-500 w-full' : 'bg-primary w-[45%]'}`}></div>
+                                <div className={`h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)] ${c.status === 'completed' ? 'bg-emerald-500 w-full' : c.status === 'running' ? 'bg-primary w-[45%]' : 'bg-slate-700 w-0'}`}></div>
                             </div>
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tabular-nums">{c.status === 'completed' ? '100%' : '45%'}</span>
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tabular-nums">{c.status === 'completed' ? '100%' : c.status === 'running' ? '45%' : '0%'}</span>
                           </div>
                         </td>
                         <td className="px-6 py-6 text-right">
-                          <button className="px-4 py-2 text-[10px] font-black text-muted-foreground hover:text-red-500 uppercase tracking-widest transition-all bg-slate-900/50 hover:bg-red-500/10 rounded-lg border border-white/5 hover:border-red-500/20">
-                            Terminate
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {c.status === 'running' && (
+                              <button 
+                                onClick={() => handleTerminate(c.id)}
+                                className="px-3 py-1.5 text-[9px] font-black text-red-400 hover:text-white uppercase tracking-widest transition-all bg-red-500/10 hover:bg-red-500 rounded-lg border border-red-500/20"
+                              >
+                                Terminate
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => handleDelete(c.id)}
+                              className="px-3 py-1.5 text-[9px] font-black text-muted-foreground hover:text-red-500 uppercase tracking-widest transition-all bg-slate-900/50 hover:bg-red-500/10 rounded-lg border border-white/5 hover:border-red-500/20"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

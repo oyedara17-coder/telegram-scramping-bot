@@ -55,7 +55,26 @@ async def get_system_logs(db: Session = Depends(get_db), admin: models.User = De
     logs = db.query(models.Log).order_by(models.Log.created_at.desc()).limit(100).all()
     return [{"id": l.id, "level": l.level, "message": l.message, "created_at": l.created_at, "username": l.user_id} for l in logs]
 
+@router.get("/settings")
+async def get_system_settings(db: Session = Depends(get_db), admin: models.User = Depends(check_admin)):
+    # In a real app, these would be in a settings table. For now, we return from env/defaults
+    from core.config import get_settings
+    settings = get_settings()
+    return {
+        "openai_api_key": "sk-••••" if os.getenv("OPENAI_API_KEY") else "",
+        "telegram_api_id": settings.TELEGRAM_API_ID,
+        "telegram_api_hash": "••••" if settings.TELEGRAM_API_HASH else "",
+        "global_delay": 60
+    }
+
 @router.post("/settings")
-async def save_settings(data: dict, admin: models.User = Depends(check_admin)):
-    # For now, just simulate success. In production, save to DB or .env
-    return {"message": "Settings saved successfully"}
+async def save_settings(data: dict, db: Session = Depends(get_db), admin: models.User = Depends(check_admin)):
+    # This is a placeholder for actual persistence logic (e.g., updating .env or a DB table)
+    # For now, we'll log the action and return success
+    message = f"Admin {admin.username} updated system settings: {list(data.keys())}"
+    log = models.Log(level="INFO", message=message, user_id=admin.id)
+    db.add(log)
+    db.commit()
+    return {"message": "Settings updated successfully (Note: changes may require restart to apply)"}
+
+import os

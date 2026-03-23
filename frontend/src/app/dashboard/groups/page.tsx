@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Search, Globe, Users, Zap, ExternalLink } from 'lucide-react';
 
+
+import { apiFetch } from '@/utils/api';
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -18,19 +20,13 @@ export default function GroupsPage() {
     setMounted(true);
   }, []);
 
-
   const handleSearch = () => fetchGroups(keyword, country);
 
   const fetchGroups = async (k: string, c: string) => {
     setLoading(true);
     try {
-      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/search_groups`);
-      url.searchParams.append('keyword', k);
-      if (c) url.searchParams.append('country', c);
-
-      const response = await fetch(url.toString(), {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const endpoint = `/api/telegram/search_groups?keyword=${encodeURIComponent(k)}${c ? `&country=${encodeURIComponent(c)}` : ''}`;
+      const response = await apiFetch(endpoint);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -40,6 +36,7 @@ export default function GroupsPage() {
       const data = await response.json();
       setGroups(Array.isArray(data) ? data : []);
     } catch (err: any) {
+      if (err.message === 'Unauthorized') return;
       console.error('Search error:', err);
       alert(err.message || 'Search failed. Ensure your Telegram account is connected.');
       setGroups([]);

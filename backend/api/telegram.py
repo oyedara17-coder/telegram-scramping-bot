@@ -53,7 +53,53 @@ async def scrape_group(data: ScrapeRequest, current_user: models.User = Depends(
         raise HTTPException(status_code=400, detail="No Telegram account connected")
     
     try:
-        members = await telegram_service.scrape_members(account.phone, data.group_id)
+        # Resolve group and scrape
+        members = await telegram_service.scrape_members(account.phone, data.group_id, account.session_name)
+        
+        # PERSISTENCE LOGIC
+        # 1. Get or create the group in our DB
+        client = await telegram_service.get_client(account.phone, account.session_name)
+        entity = await client.get_entity(data.group_id)
+        
+        tg_id = entity.id
+        # Telethon IDs for groups/channels sometimes need normalization for matching
+        # But we'll use the raw ID from the entity
+        
+        db_group = db.query(models.Group).filter(models.Group.telegram_id == tg_id).first()
+        if not db_group:
+            db_group = models.Group(
+                telegram_id=tg_id,
+                title=getattr(entity, 'title', 'Unknown Group'),
+                username=getattr(entity, 'username', None)
+            )
+            db.add(db_group)
+            db.commit()
+            db.refresh(db_group)
+        
+        # 2. Save members to ScrapedUser table
+        new_users_count = 0
+        for m in members:
+            # Check if user already exists in this group to avoid duplicates
+            existing = db.query(models.ScrapedUser).filter(
+                (models.ScrapedUser.telegram_id == m.id) & 
+                (models.ScrapedUser.group_id == db_group.id)
+            ).first()
+            
+            if not existing:
+                new_user = models.ScrapedUser(
+                    telegram_id=m.id,
+                    username=m.username,
+                    first_name=m.first_name,
+                    last_name=m.last_name,
+                    phone=m.phone,
+                    group_id=db_group.id
+                )
+                db.add(new_user)
+                new_users_count += 1
+        
+        db.commit()
+        print(f"DEBUG: Scraped and persisted {new_users_count} new users for group {db_group.title}")
+        
         return [{"id": m.id, "first_name": m.first_name, "last_name": m.last_name, "username": m.username, "phone": m.phone} for m in members]
 
     except Exception as e:
@@ -71,7 +117,7 @@ async def get_joined_groups(current_user: models.User = Depends(get_current_user
         raise HTTPException(status_code=400, detail="No Telegram account connected")
     
     try:
-        groups = await telegram_service.get_groups(account.phone)
+        groups = await telegram_service.get_groups(account.phone, account.session_name)
         return [{"id": g.id, "title": g.title, "username": getattr(g, 'username', None)} for g in groups]
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -83,7 +129,7 @@ async def send_group_message(data: MessageRequest, current_user: models.User = D
         raise HTTPException(status_code=400, detail="No Telegram account connected")
     
     try:
-        await telegram_service.send_message(account.phone, data.target_id, data.message)
+        await telegram_service.send_message(account.phone, data.target_id, data.message, account.session_name)
         return {"status": "success", "message": "Message dispatched to node"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

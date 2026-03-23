@@ -149,7 +149,7 @@ async def campaign_worker():
 
                 for campaign in scheduled_campaigns:
                     # Run the campaign logic - note that run_campaign handles status updates
-                    asyncio.create_task(messaging_service.run_campaign(campaign.id, db))
+                    asyncio.create_task(messaging_service.run_campaign(campaign.id))
                 
             finally:
                 db.close()

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Terminal, ShieldCheck, Clock, Activity, AlertCircle } from 'lucide-react';
+import { Terminal, Clock, ShieldInfo, AlertCircle, Search, Download } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 export default function LogsPage() {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -16,15 +17,13 @@ export default function LogsPage() {
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/logs`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await apiFetch('/api/telegram/logs');
       if (response.ok) {
-        const data = await response.json();
-        setLogs(data);
+        const data = await response.json().catch(() => []);
+        setLogs(Array.isArray(data) ? data : []);
       }
     } catch (err) {
-      console.error('Failed to fetch logs', err);
+      console.error(err);
     } finally {
       setLoading(false);
     }

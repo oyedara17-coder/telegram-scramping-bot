@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ShieldAlert, Terminal, ArrowRight, Phone, Key, Lock, ShieldCheck } from 'lucide-react';
+
+import { apiFetch } from '@/utils/api';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -27,7 +29,7 @@ export default function AdminLoginPage() {
       formData.append('username', username);
       formData.append('password', password);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/users/login`, {
+      const response = await apiFetch('/api/users/login', {
         method: 'POST',
         body: formData,
       });
@@ -47,12 +49,12 @@ export default function AdminLoginPage() {
       localStorage.setItem('adminRole', data.role);
       router.push('/dashboard');
     } catch (err: any) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space';
-      setError(`${err.message.toUpperCase()} (LINK: ${apiUrl})`);
+      setError(err.message.toUpperCase());
     } finally {
       setLoading(false);
     }
   };
+  
 
   if (!mounted) return <div className="min-h-screen bg-slate-950" />;
 

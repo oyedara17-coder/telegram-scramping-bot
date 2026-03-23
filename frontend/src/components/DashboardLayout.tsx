@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Accounts', icon: Users, path: '/dashboard/accounts' },
+    { name: 'Accounts', icon: Users, path: '/dashboard/node-manager' },
     { name: 'Direct Message', icon: Send, path: '/dashboard/joined-groups' },
     { name: 'Group Finder', icon: Search, path: '/dashboard/groups' },
     { name: 'Scraper', icon: UserPlus, path: '/dashboard/scraper' },

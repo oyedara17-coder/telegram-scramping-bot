@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Target, UserCheck, ShieldAlert, Clock, Activity, Search } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -16,12 +19,10 @@ export default function LeadsPage() {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/leads`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await apiFetch('/api/telegram/leads');
       if (response.ok) {
-        const data = await response.json();
-        setLeads(data);
+        const data = await response.json().catch(() => []);
+        setLeads(Array.isArray(data) ? data : []);
       } else {
         setLeads([]);
       }
@@ -29,6 +30,14 @@ export default function LeadsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInitiateDM = (username: string | null, telegramId: string | number) => {
+    const target = username || String(telegramId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pending_dm_target', target);
+      router.push('/dashboard/scraper');
     }
   };
 
@@ -111,7 +120,11 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-8 py-6 text-[10px] text-slate-500 font-mono uppercase tracking-widest font-black italic">{new Date(lead.created_at).toLocaleDateString()}</td>
                       <td className="px-8 py-6 text-right">
-                        <button className="px-6 py-2.5 bg-slate-950 text-[10px] font-black text-slate-400 hover:text-white hover:bg-primary border border-white/10 hover:border-primary/50 rounded-xl uppercase tracking-widest transition-all shadow-xl">
+                        {/* Updated button with onClick handler */}
+                        <button
+                          onClick={() => handleInitiateDM(lead.username, lead.telegram_id)}
+                          className="px-6 py-2.5 bg-slate-950 text-[10px] font-black text-slate-400 hover:text-white hover:bg-primary border border-white/10 hover:border-primary/50 rounded-xl uppercase tracking-widest transition-all shadow-xl"
+                        >
                           Initiate DM
                         </button>
                       </td>

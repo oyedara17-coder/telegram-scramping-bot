@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Lock, Key, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -32,9 +33,8 @@ function ResetPasswordForm() {
     setError('');
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/users/reset-password`, {
+      const response = await apiFetch('/api/users/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, new_password: password }),
       });
       

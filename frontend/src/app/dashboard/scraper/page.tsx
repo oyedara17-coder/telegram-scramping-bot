@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Send, Users, ShieldCheck, Zap, MessageSquare, AlertTriangle, CheckCircle2, Clock, ArrowRight, Terminal } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 
 export default function ScraperPage() {
   const [groupId, setGroupId] = useState('');
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
   
   // Search State
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -28,13 +31,27 @@ export default function ScraperPage() {
   useEffect(() => {
     setMounted(true);
     fetchTemplates();
-  }, []);
+    
+    // Check for query parameters first (Group Finder redirect)
+    const targetParam = searchParams.get('target') || searchParams.get('groupId');
+    if (targetParam) {
+      setGroupId(targetParam);
+      // Auto-trigger scrape if we have a target
+      handleScrape(targetParam);
+    } else {
+      // Check for pending DM target from Leads page (legacy/complementary)
+      const pendingTarget = localStorage.getItem('pending_dm_target');
+      if (pendingTarget) {
+        setGroupId(pendingTarget);
+        localStorage.removeItem('pending_dm_target');
+        handleScrape(pendingTarget);
+      }
+    }
+  }, [searchParams]);
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/campaigns/templates`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await apiFetch('/api/campaigns/templates');
       if (!response.ok) throw new Error('Failed to fetch templates');
       const data = await response.json();
       setTemplates(Array.isArray(data) ? data : []);
@@ -48,13 +65,8 @@ export default function ScraperPage() {
     if (!searchKeyword) return;
     setSearching(true);
     try {
-      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/search_groups`);
-      url.searchParams.append('keyword', searchKeyword);
-      if (searchCountry) url.searchParams.append('country', searchCountry);
-
-      const response = await fetch(url.toString(), {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const endpoint = `/api/telegram/search_groups?keyword=${encodeURIComponent(searchKeyword)}${searchCountry ? `&country=${encodeURIComponent(searchCountry)}` : ''}`;
+      const response = await apiFetch(endpoint);
       
       if (!response.ok) {
          const errData = await response.json().catch(() => ({}));
@@ -77,12 +89,8 @@ export default function ScraperPage() {
     
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/scrape_members`, {
+      const response = await apiFetch('/api/telegram/scrape_members', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify({ group_id: idToScrape }),
       });
 
@@ -122,12 +130,8 @@ export default function ScraperPage() {
         const target = member.username || member.id;
         
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/telegram/send-message`, {
+            await apiFetch('/api/telegram/send-message', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
                 body: JSON.stringify({
                     target_id: String(target),
                     message: finalMessage

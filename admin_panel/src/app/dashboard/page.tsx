@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ShieldAlert, Users, Activity, ExternalLink, ShieldCheck, Zap, Key, Plus, Trash2, Power } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'nodes' | 'keywords'>('nodes');
@@ -22,11 +23,11 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/users`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      });
-      const data = await response.json();
-      setUsers(data || []);
+      const response = await apiFetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data || []);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -36,12 +37,8 @@ export default function AdminDashboard() {
 
   const updateStatus = async (userId: number, status: string) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/admin/users/${userId}`, {
+      await apiFetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
         body: JSON.stringify({ status }),
       });
       fetchUsers();
@@ -51,11 +48,11 @@ export default function AdminDashboard() {
   const fetchKeywords = async () => {
     try {
       setKeywordLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      });
-      const data = await response.json();
-      setKeywords(data || []);
+      const response = await apiFetch('/api/keywords');
+      if (response.ok) {
+        const data = await response.json();
+        setKeywords(data || []);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -67,36 +64,32 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!newKeyword.trim()) return;
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords`, {
+      const res = await apiFetch('/api/keywords', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
         body: JSON.stringify({ keyword: newKeyword.trim(), is_active: true }),
       });
-      setNewKeyword('');
-      fetchKeywords();
+      if (res.ok) {
+        setNewKeyword('');
+        fetchKeywords();
+      }
     } catch (err) {}
   };
 
   const deleteKeyword = async (id: number) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords/${id}`, {
+      const res = await apiFetch(`/api/keywords/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
       });
-      fetchKeywords();
+      if (res.ok) fetchKeywords();
     } catch (err) {}
   };
 
   const toggleKeyword = async (id: number) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space'}/api/keywords/${id}/toggle`, {
+      const res = await apiFetch(`/api/keywords/${id}/toggle`, {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
       });
-      fetchKeywords();
+      if (res.ok) fetchKeywords();
     } catch (err) {}
   };
 
