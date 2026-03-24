@@ -1,5 +1,9 @@
 import os
 from huggingface_hub import HfApi, upload_folder
+from dotenv import load_dotenv
+
+# Load environment variables from .env if present
+load_dotenv(os.path.join(os.path.dirname(__file__), "backend", ".env"))
 
 # Configuration - Token should be set via environment variable for security
 TOKEN = os.getenv("HF_TOKEN")
@@ -32,7 +36,8 @@ try:
             "*.pyc", 
             "venv/*", 
             "test.db",
-            "*.log"
+            "*.log",
+            ".env"
         ],
         token=TOKEN
     )

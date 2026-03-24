@@ -18,33 +18,81 @@ class MessageRequest(BaseModel):
 
 
 @router.get("/search_groups")
-async def search_groups(keyword: str, country: str = None, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def search_groups(keyword: str, country: str = None, limit: int = 5000, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     account = db.query(models.Account).filter(models.Account.owner_id == current_user.id).first()
     if not account:
         raise HTTPException(status_code=400, detail="No Telegram account connected")
     
     try:
         from telethon.tl.functions.contacts import SearchRequest
+        import asyncio
+
         client = await telegram_service.get_client(account.phone, account.session_name)
         
-        # Incorporate country into search query if provided
-        search_query = f"{keyword} {country}" if country else keyword
-        print(f"Searching groups for: {search_query}")
-        
-        # Global search for groups
-        result = await client(SearchRequest(q=search_query, limit=20))
-        return [
-            {
-                "id": str(getattr(c, 'id', '')),
-                "title": getattr(c, 'title', ''),
-                "username": getattr(c, 'username', None),
-                "participantsCount": getattr(c, 'participants_count', 0)
-            } 
-            for c in result.chats if hasattr(c, 'title')
-        ]
+        # Build keyword variations for wider net
+        base_query = f"{keyword} {country}" if country else keyword
+        keyword_variations = [base_query, keyword]
+        if country:
+            keyword_variations.append(f"{country} {keyword}")
+
+        seen_ids = set()
+        all_groups = []
+
+        for query in keyword_variations:
+            if len(all_groups) >= limit:
+                break
+
+            print(f"Searching groups for: {query}")
+            offset_rate = 0
+            offset_id = 0
+            max_pages = (limit // 100) + 1
+
+            for page in range(max_pages):
+                if len(all_groups) >= limit:
+                    break
+                try:
+                    result = await client(SearchRequest(
+                        q=query,
+                        limit=100,
+                        offset_rate=offset_rate,
+                        offset_id=offset_id,
+                        offset_peer="username" if offset_id else None
+                    ))
+                except Exception:
+                    # Simpler call without offset on first page or if offset fails
+                    result = await client(SearchRequest(q=query, limit=100))
+
+                new_chats = [c for c in result.chats if hasattr(c, 'title')]
+                if not new_chats:
+                    break  # No more results
+
+                for c in new_chats:
+                    cid = getattr(c, 'id', None)
+                    if cid and cid not in seen_ids:
+                        seen_ids.add(cid)
+                        all_groups.append({
+                            "id": str(cid),
+                            "title": getattr(c, 'title', ''),
+                            "username": getattr(c, 'username', None),
+                            "participantsCount": getattr(c, 'participants_count', 0)
+                        })
+
+                # Advance pagination offsets
+                offset_rate = getattr(result, 'next_rate', 0)
+                if result.chats:
+                    offset_id = result.chats[-1].id
+                
+                if not offset_rate:
+                    break  # No next page
+
+                await asyncio.sleep(0.5)  # Be polite to Telegram API
+
+        print(f"Total groups found: {len(all_groups)}")
+        return all_groups[:limit]
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.post("/scrape_members")
 async def scrape_group(data: ScrapeRequest, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
