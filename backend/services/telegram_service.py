@@ -11,28 +11,39 @@ settings = get_settings()
 
 class TelegramService:
     def __init__(self):
-        if not settings.validate_telegram_config():
-            raise ValueError(
-                "TELEGRAM_API_ID or TELEGRAM_API_HASH is not set. "
-                "Please check your .env file or environment variables. "
-                "Refer to telethon.rtfd.io for more information."
-            )
         self.api_id = settings.TELEGRAM_API_ID
         self.api_hash = settings.TELEGRAM_API_HASH
         self.clients = {} # phone -> TelegramClient
         self.auth_states = {} # phone -> {phone_code_hash: str, client: TelegramClient}
 
     async def get_client(self, phone: str, session_str: Optional[str] = None) -> TelegramClient:
+        if not settings.validate_telegram_config():
+            raise RuntimeError("Telegram API configuration is not available")
+        from core.database import SessionLocal
+
+        db = SessionLocal()
+        try:
+            account = db.query(models.Account).filter(models.Account.phone == phone).first()
+            if account and account.status != "active":
+                raise PermissionError("This Telegram account is paused by an administrator")
+        finally:
+            db.close()
+
         if phone in self.clients:
-            print(f"DEBUG: Reusing existing client for {phone}")
-            return self.clients[phone]
-        
-        print(f"DEBUG: Creating new client for {phone}")
+            client = self.clients[phone]
+            if not client.is_connected():
+                await client.connect()
+            return client
         session = StringSession(session_str) if session_str else StringSession()
         client = TelegramClient(session, self.api_id, self.api_hash)
         await client.connect()
         self.clients[phone] = client
         return client
+
+    async def disconnect_client(self, phone: str):
+        client = self.clients.pop(phone, None)
+        if client and client.is_connected():
+            await client.disconnect()
 
     async def send_code(self, phone: str):
         client = await self.get_client(phone)

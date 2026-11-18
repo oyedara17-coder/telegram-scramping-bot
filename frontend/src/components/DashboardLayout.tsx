@@ -20,7 +20,8 @@ import {
   Zap,
   ChevronRight,
   Send,
-  Target
+  Target,
+  ShieldCheck
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -73,6 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Templates', icon: MessageSquare, path: '/dashboard/templates' },
     { name: 'Automation Logs', icon: Terminal, path: '/dashboard/logs' },
     { name: 'System Settings', icon: Settings, path: '/dashboard/settings' },
+    { name: 'Admin Console', icon: ShieldCheck, path: '/dashboard/admin' },
   ];
 
   const handleLogout = () => {

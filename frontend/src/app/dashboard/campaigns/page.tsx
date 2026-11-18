@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Megaphone, Play, Pause, Trash2, Clock, CheckCircle2, AlertCircle, Plus, Square } from 'lucide-react';
+import { Megaphone, Play, Pause, Trash2, Clock, CheckCircle2, AlertCircle, Plus, Square, Zap } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState([]);
-  const [templates, setTemplates] = useState([]);
-  const [groups, setGroups] = useState([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
   const [name, setName] = useState('');
   const [templateId, setTemplateId] = useState('');
   const [groupId, setGroupId] = useState('');

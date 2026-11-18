@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .config import get_settings
@@ -49,6 +49,22 @@ print(f"INFO: Database engine ready.")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+def ensure_admin_schema():
+    """Apply small, idempotent additive migrations needed by admin controls."""
+    inspector = inspect(engine)
+    if not inspector.has_table("users") or not inspector.has_table("campaigns"):
+        Base.metadata.create_all(bind=engine)
+        inspector = inspect(engine)
+
+    user_columns = {column["name"] for column in inspector.get_columns("users")}
+    campaign_columns = {column["name"] for column in inspector.get_columns("campaigns")}
+    with engine.begin() as connection:
+        if "token_version" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0"))
+        if "processed_count" not in campaign_columns:
+            connection.execute(text("ALTER TABLE campaigns ADD COLUMN processed_count INTEGER NOT NULL DEFAULT 0"))
+
 
 def get_db():
     db = SessionLocal()

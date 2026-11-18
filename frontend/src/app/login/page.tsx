@@ -36,20 +36,19 @@ export default function TelegramLoginPage() {
       formData.append('password', adminPassword);
 
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space';
-      const response = await fetch(`${apiBase}/api/users/login`, {
+      const response = await fetch(`${apiBase}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || 'Invalid username or password.');
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.role !== 'admin') {
+        throw new Error(data.detail || 'Administrator access is required.');
       }
 
-      const data = await response.json();
       localStorage.setItem('token', data.access_token);
-      router.push('/dashboard');
+      router.push('/dashboard/admin');
     } catch (err: any) {
       setError(err.message.toUpperCase());
     } finally {

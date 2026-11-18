@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Terminal, Clock, ShieldInfo, AlertCircle, Search, Download } from 'lucide-react';
+import { Terminal, Clock, ShieldCheck, AlertCircle, Activity } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
 export default function LogsPage() {

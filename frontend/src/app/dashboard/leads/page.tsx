@@ -7,7 +7,7 @@ import { Target, UserCheck, ShieldAlert, Clock, Activity, Search } from 'lucide-
 import { apiFetch } from '@/utils/api';
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();

@@ -6,7 +6,7 @@ from core.auth import verify_password, get_password_hash, create_access_token, d
 from core.config import get_settings
 from datetime import timedelta
 from models import models
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from services.telegram_service import telegram_service
 
@@ -21,8 +21,7 @@ class UserBase(BaseModel):
     email: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
-    role: str = "user"
+    password: str = Field(min_length=12, max_length=72)
 
 class UserOut(UserBase):
     id: int
@@ -48,12 +47,14 @@ class TelegramVerifyRequest(BaseModel):
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     payload = decode_access_token(token)
-    if not payload:
+    if not payload or payload.get("type") != "access":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    username: str = payload.get("sub")
+    username = payload.get("sub")
     user = db.query(models.User).filter(models.User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    if not user or user.status != "active":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account is unavailable")
+    if payload.get("ver") != user.token_version:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session has been revoked")
     return user
 
 @router.post("/login", response_model=Token)
@@ -63,10 +64,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         (models.User.email == form_data.username) | (models.User.username == form_data.username)
     ).first()
     
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not user.password_hash or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email/username or password")
-    
-    access_token = create_access_token(data={"sub": user.username, "role": user.role})
+    if user.status != "active":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is paused")
+
+    access_token = create_access_token(data={"sub": user.username, "role": user.role, "type": "access", "ver": user.token_version})
     return {"access_token": access_token, "token_type": "bearer", "role": user.role}
 
 class ForgotPasswordRequest(BaseModel):
@@ -90,7 +93,7 @@ async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(min_length=12, max_length=72)
 
 @router.post("/reset-password")
 async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
@@ -104,6 +107,7 @@ async def reset_password(request: ResetPasswordRequest, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="User not found")
     
     user.password_hash = get_password_hash(request.new_password)
+    user.token_version += 1
     db.commit()
     
     return {"message": "Password successfully updated. You can now log in."}
@@ -115,11 +119,16 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
     
+    if len(user_in.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=422, detail="Password must be 72 UTF-8 bytes or fewer")
+    if user_in.email and db.query(models.User).filter(models.User.email == user_in.email).first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
     new_user = models.User(
-        username=user_in.username,
+        username=user_in.username.strip(),
         email=user_in.email,
         password_hash=get_password_hash(user_in.password),
-        role=user_in.role
+        role="user"
     )
     db.add(new_user)
     db.commit()
@@ -194,7 +203,7 @@ async def verify_telegram_code(request: TelegramVerifyRequest, db: Session = Dep
         
         db.commit()
 
-        access_token = create_access_token(data={"sub": user.username or str(user.telegram_id), "role": user.role})
+        access_token = create_access_token(data={"sub": user.username or str(user.telegram_id), "role": user.role, "type": "access", "ver": user.token_version})
         return {"access_token": access_token, "token_type": "bearer", "role": user.role}
     except Exception as e:
         error_msg = str(e)
