@@ -12,6 +12,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=True)
     email = Column(String, unique=True, index=True, nullable=True)
     password_hash = Column(String, nullable=True)
+    token_version = Column(Integer, nullable=False, default=0, server_default="0")
     role = Column(String, default="user")
     status = Column(String, default="active")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -85,6 +86,7 @@ class Campaign(Base):
     template_id = Column(Integer, ForeignKey("templates.id"))
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
     status = Column(String, default="pending")
+    processed_count = Column(Integer, nullable=False, default=0, server_default="0")
 
     schedule_time = Column(DateTime(timezone=True))
     user_id = Column(Integer, ForeignKey("users.id"))
@@ -113,4 +115,22 @@ class Log(Base):
     level = Column(String, nullable=False)
     message = Column(Text, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdminSetting(Base):
+    __tablename__ = "admin_settings"
+
+    key = Column(String, primary_key=True)
+    value = Column(String, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class Alert(Base):
+    __tablename__ = "alerts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String, nullable=False)
+    destination = Column(String, nullable=False)
+    status = Column(String, default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())

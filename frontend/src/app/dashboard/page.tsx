@@ -5,7 +5,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { 
   Users, 
-  Send, 
   Search, 
   Target, 
   ShieldCheck, 
@@ -21,6 +20,8 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type ActivityLog = { id: number; created_at: string; level: string; message: string };
+
 export default function DashboardOverview() {
   const [stats, setStats] = useState({
     joined_groups: 0,
@@ -28,7 +29,7 @@ export default function DashboardOverview() {
     total_leads: 0,
     messages_sent: 0
   });
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -48,8 +49,8 @@ export default function DashboardOverview() {
         
         const logsRes = await apiFetch('/api/telegram/logs');
         if (logsRes.ok) {
-           const logsData = await logsRes.json();
-           setLogs(logsData);
+           const logsData: unknown = await logsRes.json();
+           setLogs(Array.isArray(logsData) ? logsData as ActivityLog[] : []);
         }
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
@@ -146,7 +147,7 @@ export default function DashboardOverview() {
                          <p className="text-[10px] font-black uppercase tracking-[0.5em]">No recent activity</p>
                       </div>
                    ) : (
-                      logs.map((log: any) => (
+                      logs.map((log) => (
                          <div key={log.id} className="text-xs flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5 relative z-10 w-full transition-colors hover:bg-white/10">
                             <span className="text-slate-500 font-mono flex-shrink-0">{new Date(log.created_at).toLocaleTimeString()}</span>
                             <span className={`font-mono flex-shrink-0 ${log.level === 'ERROR' ? 'text-red-400' : 'text-primary'}`}>[{log.level}]</span>
@@ -216,7 +217,7 @@ export default function DashboardOverview() {
 
                  <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/10">
                     <p className="text-[10px] text-primary/70 font-medium leading-relaxed italic">
-                       * "Warm-up Mode" is currently active for all connected clusters.
+                       * &quot;Warm-up Mode&quot; is currently active for all connected clusters.
                     </p>
                  </div>
               </div>

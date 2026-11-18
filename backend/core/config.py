@@ -1,3 +1,4 @@
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 import os
@@ -18,7 +19,7 @@ class Settings(BaseSettings):
     LIBSQL_AUTH_TOKEN: str = ""
     
     # JWT
-    JWT_SECRET_KEY: str = "secret"
+    JWT_SECRET_KEY: str = Field(min_length=32, validation_alias=AliasChoices("JWT_SECRET_KEY", "SECRET_KEY"))
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     

@@ -3,9 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ShieldCheck, Zap, Terminal, ArrowRight, Phone, Key, Lock, User } from 'lucide-react';
+import { ShieldCheck, Terminal, ArrowRight, Phone, Key, Lock, User } from 'lucide-react';
 
 import { apiFetch } from '@/utils/api';
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function TelegramLoginPage() {
   const [loginMode, setLoginMode] = useState<'admin' | 'telegram'>('admin');
@@ -36,22 +40,21 @@ export default function TelegramLoginPage() {
       formData.append('password', adminPassword);
 
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://oyedara17-stepyzoid-backend.hf.space';
-      const response = await fetch(`${apiBase}/api/users/login`, {
+      const response = await fetch(`${apiBase}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || 'Invalid username or password.');
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.role !== 'admin') {
+        throw new Error(data.detail || 'Administrator access is required.');
       }
 
-      const data = await response.json();
       localStorage.setItem('token', data.access_token);
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+      router.push('/dashboard/admin');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Administrator sign-in failed.').toUpperCase());
     } finally {
       setLoading(false);
     }
@@ -77,8 +80,8 @@ export default function TelegramLoginPage() {
       const data = await response.json();
       setPhoneCodeHash(data.phone_code_hash);
       setStep(2);
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send verification code.').toUpperCase());
     } finally {
       setLoading(false);
     }
@@ -110,8 +113,8 @@ export default function TelegramLoginPage() {
       const data = await response.json();
       localStorage.setItem('token', data.access_token);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Telegram authentication failed.').toUpperCase());
     } finally {
       setLoading(false);
     }

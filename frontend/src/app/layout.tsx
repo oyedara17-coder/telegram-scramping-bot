@@ -1,10 +1,18 @@
 import React from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./global.css";
 
 export const metadata: Metadata = {
-  title: "Stepyzoid Studio",
-  description: "Elite Automation Node v2.0",
+  title: {
+    default: "Stepyzoid Studio",
+    template: "%s | Stepyzoid Studio",
+  },
+  description: "Manage platform accounts, campaigns, leads, and operational activity.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#050a12",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

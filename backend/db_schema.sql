@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    token_version INTEGER NOT NULL DEFAULT 0,
     role VARCHAR(50) DEFAULT 'user', -- 'admin', 'user'
     status VARCHAR(50) DEFAULT 'active', -- 'active', 'paused'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -62,6 +63,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
     name VARCHAR(255) NOT NULL,
     template_id INTEGER REFERENCES templates(id),
     status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'running', 'paused', 'completed'
+    processed_count INTEGER NOT NULL DEFAULT 0,
     schedule_time TIMESTAMP WITH TIME ZONE,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -86,6 +88,13 @@ CREATE TABLE IF NOT EXISTS logs (
     message TEXT NOT NULL,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Admin-controlled runtime settings (never stores external API credentials)
+CREATE TABLE IF NOT EXISTS admin_settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value VARCHAR(255) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Alerts table

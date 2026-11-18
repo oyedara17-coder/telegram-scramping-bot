@@ -3,11 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Target, UserCheck, ShieldAlert, Clock, Activity, Search } from 'lucide-react';
+import { Target, UserCheck, Activity } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type LeadRecord = {
+  id: number;
+  username: string | null;
+  telegram_id: number | string;
+  detection_keyword?: string | null;
+  status: string;
+  created_at?: string | null;
+};
+
 export default function LeadsPage() {
-  const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState<LeadRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -21,8 +30,8 @@ export default function LeadsPage() {
     try {
       const response = await apiFetch('/api/telegram/leads');
       if (response.ok) {
-        const data = await response.json().catch(() => []);
-        setLeads(Array.isArray(data) ? data : []);
+        const data: unknown = await response.json().catch(() => []);
+        setLeads(Array.isArray(data) ? data as LeadRecord[] : []);
       } else {
         setLeads([]);
       }
@@ -93,7 +102,7 @@ export default function LeadsPage() {
                     </td>
                   </tr>
                 ) : (
-                  leads.map((lead: any) => (
+                  leads.map((lead) => (
                     <tr key={lead.id} className="hover:bg-white/5 transition-all group border-b border-white/5 last:border-0 cursor-default">
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
@@ -118,7 +127,7 @@ export default function LeadsPage() {
                           {lead.status}
                         </span>
                       </td>
-                      <td className="px-8 py-6 text-[10px] text-slate-500 font-mono uppercase tracking-widest font-black italic">{new Date(lead.created_at).toLocaleDateString()}</td>
+                      <td className="px-8 py-6 text-[10px] text-slate-500 font-mono uppercase tracking-widest font-black italic">{lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '—'}</td>
                       <td className="px-8 py-6 text-right">
                         {/* Updated button with onClick handler */}
                         <button

@@ -9,13 +9,12 @@ settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password, hashed_password):
+    if not isinstance(plain_password, str) or not isinstance(hashed_password, str) or not hashed_password:
+        return False
     try:
         return pwd_context.verify(plain_password, hashed_password)
-    except Exception as e:
-        import hashlib
-        # Fallback for simple SHA256 (used in emergency migrations or bcrypt failures)
-        current_hash = hashlib.sha256(plain_password.encode()).hexdigest()
-        return current_hash == hashed_password
+    except (ValueError, TypeError):
+        return False
 
 def get_password_hash(password):
     return pwd_context.hash(password)

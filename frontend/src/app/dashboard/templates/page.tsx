@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { apiFetch } from '@/utils/api';
 
+type TemplateRecord = { id: number; name: string; content: string };
+
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState([]);
+  const [templates, setTemplates] = useState<TemplateRecord[]>([]);
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,10 @@ export default function TemplatesPage() {
   const fetchTemplates = async () => {
     try {
       const res = await apiFetch('/api/campaigns/templates');
-      if (res.ok) setTemplates(await res.json());
+      if (res.ok) {
+        const data: unknown = await res.json();
+        setTemplates(Array.isArray(data) ? data as TemplateRecord[] : []);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -40,7 +45,7 @@ export default function TemplatesPage() {
         setContent('');
         fetchTemplates();
       }
-    } catch (err) {
+    } catch {
       alert('Failed to save template');
     } finally {
       setLoading(false);
@@ -58,7 +63,7 @@ export default function TemplatesPage() {
         const errData = await response.json();
         alert(errData.detail || 'Failed to delete template');
       }
-    } catch (err) {
+    } catch {
       alert('Delete failed');
     }
   };
@@ -110,10 +115,10 @@ export default function TemplatesPage() {
           </div>
 
           <div className="space-y-4 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
-            {templates.map((t: any) => (
+            {templates.map((t) => (
               <div key={t.id} className="glass-card p-6 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all relative group cursor-pointer border-white/5">
                 <h4 className="font-black text-foreground mb-2 truncate pr-12 text-sm uppercase italic">{t.name}</h4>
-                <p className="text-sm text-muted-foreground line-clamp-3 font-medium">"{t.content}"</p>
+                <p className="text-sm text-muted-foreground line-clamp-3 font-medium">&quot;{t.content}&quot;</p>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
                   className="absolute top-6 right-6 text-[10px] font-black text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors opacity-0 group-hover:opacity-100"

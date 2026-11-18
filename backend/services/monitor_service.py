@@ -24,6 +24,10 @@ class MonitorService:
         finally:
             db.close()
 
+    async def stop_monitoring(self, phone: str):
+        self.active_monitors.discard(phone)
+        await telegram_service.disconnect_client(phone)
+
     async def _attach_listener(self, phone: str, session_name: str, owner_id: int):
         try:
             client = await telegram_service.get_client(phone, session_name)

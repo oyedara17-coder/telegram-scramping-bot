@@ -1,39 +1,40 @@
-import os
-import sys
-from dotenv import load_dotenv
+from getpass import getpass
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv()
-
-from core.database import SessionLocal
-from models import models
 from core.auth import get_password_hash
+from core.database import Base, SessionLocal, engine, ensure_admin_schema
+from models import models
 
-def fix_admin():
+
+def provision_admin():
+    Base.metadata.create_all(bind=engine)
+    ensure_admin_schema()
+
+    username = input("Administrator username: ").strip()
+    if len(username) < 2 or len(username) > 64:
+        raise SystemExit("Username must contain between 2 and 64 characters.")
+
+    password = getpass("New administrator password (12-72 characters): ")
+    confirmation = getpass("Confirm password: ")
+    if password != confirmation:
+        raise SystemExit("Passwords did not match.")
+    if len(password) < 12 or len(password) > 72 or len(password.encode("utf-8")) > 72:
+        raise SystemExit("Password must contain 12-72 characters and use at most 72 UTF-8 bytes.")
+
     db = SessionLocal()
     try:
-        user = db.query(models.User).filter(models.User.username == "stepyzoid").first()
-        if user:
-            print(f"Found admin user: {user.username}, Role: {user.role}")
-            print(f"Current password hash: {user.password_hash}")
-            user.password_hash = get_password_hash("080789")
-            user.role = "admin"
-            db.commit()
-            print("Password reset to 080789 and role ensured as admin.")
-        else:
-            print("Admin user not found! Creating...")
-            new_admin = models.User(
-                username="stepyzoid",
-                password_hash=get_password_hash("080789"),
-                role="admin"
-            )
-            db.add(new_admin)
-            db.commit()
-            print("Created new admin user stepyzoid with password 080789")
-    except Exception as e:
-        print(f"Error: {e}")
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if user is None:
+            user = models.User(username=username)
+            db.add(user)
+        user.password_hash = get_password_hash(password)
+        user.role = "admin"
+        user.status = "active"
+        user.token_version = (user.token_version or 0) + 1
+        db.commit()
+        print(f"Administrator '{username}' is ready. No password was printed or stored in application output.")
     finally:
         db.close()
 
+
 if __name__ == "__main__":
-    fix_admin()
+    provision_admin()

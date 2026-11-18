@@ -105,7 +105,7 @@ async def create_campaign(data: CampaignCreate, background_tasks: BackgroundTask
         should_run_now = True
         
     if should_run_now:
-        background_tasks.add_task(messaging_service.run_campaign, new_campaign.id)
+        background_tasks.add_task(messaging_service.start_campaign, new_campaign.id)
     
     return new_campaign
 
@@ -134,5 +134,6 @@ async def terminate_campaign(campaign_id: int, current_user: models.User = Depen
     if campaign.status == "running":
         campaign.status = "terminated"
         db.commit()
-        return {"status": "ok", "message": "Campaign termination requested"}
+        await messaging_service.pause_campaign(campaign.id)
+        return {"status": "ok", "message": "Campaign termination completed"}
     return {"status": "error", "message": "Campaign is not running"}

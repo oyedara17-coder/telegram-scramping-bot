@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Terminal, Clock, ShieldInfo, AlertCircle, Search, Download } from 'lucide-react';
+import { Terminal, Clock, ShieldCheck, AlertCircle, Activity } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type LogRecord = { id: number; level: string; message: string; created_at?: string | null };
+
 export default function LogsPage() {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<LogRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -19,8 +21,8 @@ export default function LogsPage() {
     try {
       const response = await apiFetch('/api/telegram/logs');
       if (response.ok) {
-        const data = await response.json().catch(() => []);
-        setLogs(Array.isArray(data) ? data : []);
+        const data: unknown = await response.json().catch(() => []);
+        setLogs(Array.isArray(data) ? data as LogRecord[] : []);
       }
     } catch (err) {
       console.error(err);
@@ -74,9 +76,9 @@ export default function LogsPage() {
                   <p className="text-xs font-black uppercase tracking-[0.3em] italic">No active telemetry detected.</p>
                </div>
             ) : (
-              logs.map((log: any) => (
+              logs.map((log) => (
                 <div key={log.id} className="flex gap-4 group transition-colors hover:bg-white/5 p-2 rounded-lg border border-transparent hover:border-white/5">
-                  <span className="text-slate-600 shrink-0 font-bold tabular-nums">[{new Date(log.created_at).toLocaleTimeString()}]</span>
+                  <span className="text-slate-600 shrink-0 font-bold tabular-nums">[{log.created_at ? new Date(log.created_at).toLocaleTimeString() : '—'}]</span>
                   <span className={`font-black uppercase tracking-widest text-[10px] py-0.5 px-2 rounded-md ${
                     log.level === 'ERROR' ? 'bg-red-500/10 text-red-500' : 
                     log.level === 'WARNING' ? 'bg-amber-500/10 text-amber-500' : 
