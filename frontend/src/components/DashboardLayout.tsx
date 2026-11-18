@@ -16,8 +16,6 @@ import {
   Bell, 
   ChevronLeft, 
   LogOut, 
-  User,
-  Zap,
   ChevronRight,
   Send,
   Target,

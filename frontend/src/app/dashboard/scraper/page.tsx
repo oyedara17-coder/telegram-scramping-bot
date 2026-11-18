@@ -1,26 +1,37 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Send, Users, ShieldCheck, Zap, MessageSquare, AlertTriangle, CheckCircle2, Clock, ArrowRight, Terminal } from 'lucide-react';
+import { Send, Users, ShieldCheck, Zap, AlertTriangle, CheckCircle2, Clock, ArrowRight, Terminal } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type ScrapedMember = { id: number | string; username?: string | null; first_name?: string | null; last_name?: string | null; phone?: string | null };
+type SearchGroup = { id: number | string; title?: string; username?: string | null; participantsCount?: number };
+type MessageTemplate = { id: number; name: string; content: string };
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function ScraperPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-slate-950" />}><ScraperContent /></Suspense>;
+}
+
+function ScraperContent() {
   const [groupId, setGroupId] = useState('');
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<ScrapedMember[]>([]);
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   
   // Search State
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchCountry, setSearchCountry] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchGroup[]>([]);
   const [searching, setSearching] = useState(false);
 
   // Outreach State
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -28,38 +39,54 @@ export default function ScraperPage() {
   const [outreachStatus, setOutreachStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    fetchTemplates();
-    
-    // Check for query parameters first (Group Finder redirect)
-    const targetParam = searchParams.get('target') || searchParams.get('groupId');
-    if (targetParam) {
-      setGroupId(targetParam);
-      // Auto-trigger scrape if we have a target
-      handleScrape(targetParam);
-    } else {
-      // Check for pending DM target from Leads page (legacy/complementary)
-      const pendingTarget = localStorage.getItem('pending_dm_target');
-      if (pendingTarget) {
-        setGroupId(pendingTarget);
-        localStorage.removeItem('pending_dm_target');
-        handleScrape(pendingTarget);
-      }
-    }
-  }, [searchParams]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const response = await apiFetch('/api/campaigns/templates');
       if (!response.ok) throw new Error('Failed to fetch templates');
-      const data = await response.json();
-      setTemplates(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to fetch templates:', err);
+      const data: unknown = await response.json();
+      setTemplates(Array.isArray(data) ? data as MessageTemplate[] : []);
+    } catch (error) {
+      console.error('Failed to fetch templates:', error);
       setTemplates([]);
     }
-  };
+  }, []);
+
+  const handleScrape = useCallback(async (idToScrape: string) => {
+    if (!idToScrape) return;
+
+    setLoading(true);
+    try {
+      const response = await apiFetch('/api/telegram/scrape_members', {
+        method: 'POST',
+        body: JSON.stringify({ group_id: idToScrape }),
+      });
+      const data: unknown = await response.json().catch(() => []);
+      if (!response.ok) {
+        const errorDetail = typeof data === 'object' && data !== null && 'detail' in data ? data.detail : undefined;
+        throw new Error(typeof errorDetail === 'string' ? errorDetail : 'Scraping failed');
+      }
+      setMembers(Array.isArray(data) ? data as ScrapedMember[] : []);
+      setGroupId(idToScrape);
+    } catch (error: unknown) {
+      alert(getErrorMessage(error, 'Scraping failed. Ensure the account is a member of the group.'));
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    void fetchTemplates();
+
+    const targetParam = searchParams.get('target') || searchParams.get('groupId');
+    const pendingTarget = targetParam || localStorage.getItem('pending_dm_target');
+    if (pendingTarget) {
+      setGroupId(pendingTarget);
+      if (!targetParam) localStorage.removeItem('pending_dm_target');
+      void handleScrape(pendingTarget);
+    }
+  }, [fetchTemplates, handleScrape, searchParams]);
 
   const handleSearch = async () => {
     if (!searchKeyword) return;
@@ -73,40 +100,13 @@ export default function ScraperPage() {
          throw new Error(errData.detail || 'Search failed');
       }
 
-      const data = await response.json();
-      setSearchResults(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      console.error('Search error:', err);
+      const data: unknown = await response.json();
+      setSearchResults(Array.isArray(data) ? data as SearchGroup[] : []);
+    } catch (error: unknown) {
+      console.error('Search error:', error);
       setSearchResults([]);
     } finally {
       setSearching(false);
-    }
-  };
-
-  const handleScrape = async (overrideId?: string) => {
-    const idToScrape = overrideId || groupId;
-    if (!idToScrape) return;
-    
-    setLoading(true);
-    try {
-      const response = await apiFetch('/api/telegram/scrape_members', {
-        method: 'POST',
-        body: JSON.stringify({ group_id: idToScrape }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Scraping failed');
-      }
-
-      const data = await response.json();
-      setMembers(Array.isArray(data) ? data : []);
-      if (overrideId) setGroupId(overrideId);
-    } catch (err: any) {
-      alert(err.message || 'Scraping failed. Ensure the account is a member of the group.');
-      setMembers([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -146,11 +146,12 @@ export default function ScraperPage() {
                 const delay = Math.floor(Math.random() * (60000 - 30000 + 1) + 30000);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
-        } catch (err) {
+        } catch {
             console.error(`Failed to send to ${target}`);
         }
     }
 
+    setSending(false);
     setOutreachStatus('completed');
   };
 
@@ -246,14 +247,14 @@ export default function ScraperPage() {
 
             {searchResults.length > 0 && (
               <div className="space-y-3 mt-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {searchResults.map((group, idx) => (
-                  <div key={idx} className="p-4 bg-slate-950 border border-white/10 rounded-2xl flex items-center justify-between group/item hover:border-primary/50 transition-all">
+                {searchResults.map((group) => (
+                  <div key={group.id} className="p-4 bg-slate-950 border border-white/10 rounded-2xl flex items-center justify-between group/item hover:border-primary/50 transition-all">
                     <div>
                       <p className="text-sm font-black text-foreground uppercase italic leading-none">{group.title}</p>
                       <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest">@{group.username || group.id} • {group.participantsCount} Users</p>
                     </div>
                     <button 
-                      onClick={() => handleScrape(group.username || group.id)}
+                      onClick={() => handleScrape(String(group.username || group.id))}
                       className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all"
                     >
                       <ArrowRight className="w-4 h-4" />
@@ -282,7 +283,7 @@ export default function ScraperPage() {
                 onChange={(e) => setGroupId(e.target.value)}
               />
               <button
-                onClick={() => handleScrape()}
+                onClick={() => handleScrape(groupId)}
                 disabled={loading || !groupId}
                 className="w-full py-4 bg-foreground text-background font-black rounded-2xl hover:shadow-lg transition-all disabled:opacity-50 uppercase tracking-widest text-xs flex items-center justify-center gap-3"
               >
@@ -329,7 +330,7 @@ export default function ScraperPage() {
                       </td>
                     </tr>
                   ) : (
-                    members.map((m: any, idx) => (
+                    members.map((m, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group/row">
                         <td className="px-6 py-4">
                             <div className="flex items-center gap-3">

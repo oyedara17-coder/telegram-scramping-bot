@@ -86,7 +86,7 @@ async def get_accounts(db: Session = Depends(get_db), current_user: models.User 
     try:
         accounts = db.query(models.Account).filter(models.Account.owner_id == current_user.id).all()
         print(f"DEBUG: Fetched {len(accounts)} accounts for user {current_user.id}")
-        return [{"id": a.id, "phone": a.phone, "status": a.status, "session_name": a.session_name} for a in accounts]
+        return [{"id": a.id, "phone": a.phone, "status": a.status} for a in accounts]
     except Exception as e:
         print(f"ERROR fetching accounts: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error while fetching accounts")

@@ -1,13 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { LogOut } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type TelegramAccount = { id: number; phone?: string; status?: string };
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function NodeManagerPage() {
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<TelegramAccount[]>([]);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -39,13 +44,12 @@ export default function NodeManagerPage() {
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.detail || `Server error: ${response.status}`);
       }
-      const data = await response.json().catch(() => []);
-      console.log('DEBUG: Fetch accounts raw data:', data);
-      setAccounts(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      if (err.message === 'Unauthorized') return; // Handled by apiFetch redirect
-      console.error('Fetch accounts error:', err);
-      setError(err.message || 'Failed to connect to the node cluster.');
+      const data: unknown = await response.json().catch(() => []);
+      setAccounts(Array.isArray(data) ? data as TelegramAccount[] : []);
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, 'Failed to connect to the node cluster.');
+      if (message === 'Unauthorized') return;
+      setError(message);
       setAccounts([]);
     } finally {
       setFetching(false);
@@ -66,9 +70,10 @@ export default function NodeManagerPage() {
       const data = await response.json();
       setPhoneCodeHash(data.phone_code_hash);
       setStep(2);
-    } catch (err: any) {
-      if (err.message === 'Unauthorized') return;
-      alert(err.message || 'Failed to send code');
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, 'Failed to send code');
+      if (message === 'Unauthorized') return;
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -91,9 +96,10 @@ export default function NodeManagerPage() {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || 'Sign in failed');
       }
-    } catch (err: any) {
-      if (err.message === 'Unauthorized') return;
-      alert(err.message || 'Sign in failed');
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, 'Sign in failed');
+      if (message === 'Unauthorized') return;
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -110,9 +116,10 @@ export default function NodeManagerPage() {
         const errData = await response.json();
         throw new Error(errData.detail || 'Failed to revoke node');
       }
-    } catch (err: any) {
-      if (err.message === 'Unauthorized') return;
-      alert(err.message);
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, 'Failed to revoke node.');
+      if (message === 'Unauthorized') return;
+      alert(message);
     }
   };
 
@@ -224,7 +231,6 @@ export default function NodeManagerPage() {
                 <thead className="bg-slate-950/50 border-b border-white/10 text-[10px] text-slate-500 uppercase font-black tracking-widest">
                   <tr>
                     <th className="px-6 py-5">Phone Node</th>
-                    <th className="px-6 py-5 hidden sm:table-cell">Session Link</th>
                     <th className="px-6 py-5">Status</th>
                     <th className="px-6 py-5 text-right">Commander</th>
                   </tr>
@@ -232,7 +238,7 @@ export default function NodeManagerPage() {
                 <tbody className="divide-y divide-border">
                   {fetching ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-20 text-center">
+                      <td colSpan={3} className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center gap-4">
                           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] italic animate-pulse">Synchronizing Node Data...</p>
@@ -246,14 +252,11 @@ export default function NodeManagerPage() {
                       </td>
                     </tr>
                   ) : (
-                    accounts.map((acc: any, index: number) => {
+                    accounts.map((acc, index) => {
                       if (!acc) return null;
                       return (
                         <tr key={acc.id || `acc-${index}`} className="hover:bg-primary/5 transition-colors group">
                           <td className="px-6 py-5 font-black text-foreground italic">{acc.phone || 'Unknown'}</td>
-                          <td className="px-6 py-5 text-[10px] text-muted-foreground font-mono hidden sm:table-cell">
-                             {acc.session_name ? (String(acc.session_name).substring(0, 12) + '...') : 'active_node...'}
-                          </td>
                           <td className="px-6 py-5">
                             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                               {acc.status || 'Active'}

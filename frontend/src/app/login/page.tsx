@@ -3,9 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ShieldCheck, Zap, Terminal, ArrowRight, Phone, Key, Lock, User } from 'lucide-react';
+import { ShieldCheck, Terminal, ArrowRight, Phone, Key, Lock, User } from 'lucide-react';
 
 import { apiFetch } from '@/utils/api';
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function TelegramLoginPage() {
   const [loginMode, setLoginMode] = useState<'admin' | 'telegram'>('admin');
@@ -49,8 +53,8 @@ export default function TelegramLoginPage() {
 
       localStorage.setItem('token', data.access_token);
       router.push('/dashboard/admin');
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Administrator sign-in failed.').toUpperCase());
     } finally {
       setLoading(false);
     }
@@ -76,8 +80,8 @@ export default function TelegramLoginPage() {
       const data = await response.json();
       setPhoneCodeHash(data.phone_code_hash);
       setStep(2);
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send verification code.').toUpperCase());
     } finally {
       setLoading(false);
     }
@@ -109,8 +113,8 @@ export default function TelegramLoginPage() {
       const data = await response.json();
       localStorage.setItem('token', data.access_token);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Telegram authentication failed.').toUpperCase());
     } finally {
       setLoading(false);
     }

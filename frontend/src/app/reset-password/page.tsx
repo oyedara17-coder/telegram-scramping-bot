@@ -3,8 +3,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Lock, Key, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -43,8 +47,8 @@ function ResetPasswordForm() {
       
       setMessage(data.message.toUpperCase());
       setTimeout(() => router.push('/login'), 2000);
-    } catch (err: any) {
-      setError(err.message.toUpperCase());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Recovery failed.').toUpperCase());
     } finally {
       setLoading(false);
     }

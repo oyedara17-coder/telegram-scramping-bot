@@ -9,15 +9,14 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const baseUrl = getApiUrl();
   const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
-  const isFormData = options.body instanceof FormData;
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = new Headers(options.headers);
 
-  const headers: any = {
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...((options.headers as any) || {}),
-  };
-
-  if (!isFormData && !headers['Content-Type']) {
-    headers['Content-Type'] = 'application/json';
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  if (!isFormData && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
 
   try {

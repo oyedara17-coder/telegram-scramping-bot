@@ -1,17 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Users, Send, MessageSquare, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type TelegramGroup = { id: number | string; title?: string; username?: string | null };
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function JoinedGroupsPage() {
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<TelegramGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
   // Messaging state
-  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [selectedGroup, setSelectedGroup] = useState<TelegramGroup | null>(null);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,17 +32,18 @@ export default function JoinedGroupsPage() {
     try {
       const response = await apiFetch('/api/telegram/joined-groups');
       if (!response.ok) throw new Error('Failed to fetch groups');
-      const data = await response.json();
-      setGroups(data);
-    } catch (err: any) {
-      if (err.message === 'Unauthorized') return;
-      setError(err.message);
+      const data: unknown = await response.json();
+      setGroups(Array.isArray(data) ? data as TelegramGroup[] : []);
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, 'Failed to fetch groups.');
+      if (message === 'Unauthorized') return;
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedGroup || !message.trim()) return;
 
@@ -59,9 +67,10 @@ export default function JoinedGroupsPage() {
 
       setSuccess(true);
       setMessage('');
-    } catch (err: any) {
-      if (err.message === 'Unauthorized') return;
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, 'Failed to send the message.');
+      if (message === 'Unauthorized') return;
+      setError(message);
     } finally {
       setSending(false);
     }
@@ -73,7 +82,7 @@ export default function JoinedGroupsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Joined <span className="text-primary">Groups</span></h1>
-            <p className="text-muted-foreground font-medium mt-1">Directly interact with groups you've already joined.</p>
+            <p className="text-muted-foreground font-medium mt-1">Directly interact with groups you&apos;ve already joined.</p>
           </div>
           <button 
             onClick={fetchGroups}
@@ -107,7 +116,7 @@ export default function JoinedGroupsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {groups.map((group: any) => (
+                {groups.map((group) => (
                   <div 
                     key={group.id}
                     onClick={() => setSelectedGroup(group)}

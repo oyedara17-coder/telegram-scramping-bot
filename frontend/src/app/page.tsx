@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Zap, Users, ShieldCheck, ArrowRight, Lock, Activity } from 'lucide-react';
+import { Zap, Users, ShieldCheck, Activity } from 'lucide-react';
 
 export default function RootPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

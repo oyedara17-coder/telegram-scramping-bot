@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Megaphone, Play, Pause, Trash2, Clock, CheckCircle2, AlertCircle, Plus, Square, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 
+type CampaignRecord = { id: number; name: string; status: string };
+type TemplateRecord = { id: number; name: string; content: string };
+type GroupRecord = { id: number | string; title?: string };
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [groups, setGroups] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
+  const [templates, setTemplates] = useState<TemplateRecord[]>([]);
+  const [groups, setGroups] = useState<GroupRecord[]>([]);
   const [name, setName] = useState('');
   const [templateId, setTemplateId] = useState('');
   const [groupId, setGroupId] = useState('');
@@ -29,7 +32,7 @@ export default function CampaignsPage() {
       const response = await apiFetch('/api/campaigns');
       const data = await response.json().catch(() => []);
       setCampaigns(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch {
       setCampaigns([]);
     }
   };
@@ -39,7 +42,7 @@ export default function CampaignsPage() {
       const response = await apiFetch('/api/campaigns/templates');
       const data = await response.json();
       setTemplates(data || []);
-    } catch (err) {}
+    } catch {}
   };
 
   const fetchGroups = async () => {
@@ -47,7 +50,7 @@ export default function CampaignsPage() {
       const response = await apiFetch('/api/telegram/joined-groups');
       const data = await response.json();
       setGroups(data || []);
-    } catch (err) {}
+    } catch {}
   };
 
   const fetchData = async () => {
@@ -77,7 +80,7 @@ export default function CampaignsPage() {
         setScheduleTime('');
         fetchData();
       }
-    } catch (err) {
+    } catch {
       alert('Failed to create campaign');
     } finally {
       setLoading(false);
@@ -90,7 +93,7 @@ export default function CampaignsPage() {
     try {
       const res = await apiFetch(`/api/campaigns/${id}/terminate`, { method: 'POST' });
       if (res.ok) fetchData();
-    } catch (err) {
+    } catch {
       alert('Termination failed');
     }
   };
@@ -100,7 +103,7 @@ export default function CampaignsPage() {
     try {
       const res = await apiFetch(`/api/campaigns/${id}`, { method: 'DELETE' });
       if (res.ok) fetchData();
-    } catch (err) {
+    } catch {
       alert('Deletion failed');
     }
   };
@@ -144,7 +147,7 @@ export default function CampaignsPage() {
                   onChange={(e) => setTemplateId(e.target.value)}
                 >
                   <option value="">Select Protocol</option>
-                  {templates.map((t: any) => (
+                  {templates.map((t) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
@@ -157,7 +160,7 @@ export default function CampaignsPage() {
                   onChange={(e) => setGroupId(e.target.value)}
                 >
                   <option value="">Global Broadcast</option>
-                  {groups.map((g: any) => (
+                  {groups.map((g) => (
                     <option key={g.id} value={g.id}>{g.title}</option>
                   ))}
                 </select>
@@ -207,7 +210,7 @@ export default function CampaignsPage() {
                       </td>
                     </tr>
                   ) : (
-                    campaigns.map((c: any) => (
+                    campaigns.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-800/30 transition-colors group border-b border-white/5 last:border-0">
                         <td className="px-6 py-6">
                             <p className="font-black text-foreground italic uppercase leading-none">{c.name}</p>
